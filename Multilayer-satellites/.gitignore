@@ -1,0 +1,8 @@
+*_test/
+IridiumNew/
+out/
+.vscode/
+*TEST/
+*.txt
+*.db
+*.sca

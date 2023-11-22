@@ -1,0 +1,14 @@
+<Satellites>
+	<Satellite id="18">
+		<MulticastGroup name="dataCenterUsa">
+			<Destination>13</Destination>
+			<Destination>14</Destination>
+			<Destination>15</Destination>
+		</MulticastGroup>
+		<MulticastGroup name="dataCenterChina">
+			<Destination>40</Destination>
+			<Destination>51</Destination>
+			<Destination>62</Destination>
+		</MulticastGroup>
+	</Satellite>
+</Satellites>

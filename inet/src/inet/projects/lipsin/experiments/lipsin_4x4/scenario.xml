@@ -1,0 +1,5 @@
+<scenario>
+	<at t="2s">
+		<disconnect src-module="SAT5" src-gate="ethg[3]"></disconnect>
+	</at>
+</scenario>

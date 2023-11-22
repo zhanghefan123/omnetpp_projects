@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="selection" value=""/>
+		<item key="wrap" value="false"/>
+		<item key="casesensitive" value="false"/>
+		<item key="wholeword" value="false"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
+		<list key="findhistory">
+			<item value="rngNumber"/>
+			<item value="sendInterval"/>
+			<item value="routerDeadInterval"/>
+			<item value="lipsinForwarder"/>
+			<item value="std::cout"/>
+			<item value="finish"/>
+			<item value="lipsinHeaderNew-&gt;setRealLidsBf"/>
+			<item value="lipsinHeaderOld-&gt;setReal"/>
+			<item value="sucessful"/>
+			<item value="requestStream"/>
+			<item value="sendReq"/>
+			<item value="srcId=&apos;55&apos; destId=&apos;44&apos;"/>
+			<item value="180"/>
+			<item value="srcId=&apos;11&apos; destId=&apos;12&apos;"/>
+			<item value="linkId=&apos;3&apos;"/>
+		</list>
+		<list key="replacehistory">
+			<item value="successful"/>
+			<item value="LipsinSatellite"/>
+			<item value="LINK_100"/>
+			<item value="SAT"/>
+			<item value="LEO"/>
+			<item value="LipsinRouter"/>
+			<item value=""/>
+			<item value="SatComm"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="0"/>
+		<item key="DIALOG_Y_ORIGIN" value="0"/>
+		<item key="DIALOG_WIDTH" value="584"/>
+		<item key="DIALOG_HEIGHT" value="739"/>
+		<item key="DIALOG_FONT_NAME" value="1|Ubuntu|11.0|0|GTK|1|"/>
+	</section>
+</section>

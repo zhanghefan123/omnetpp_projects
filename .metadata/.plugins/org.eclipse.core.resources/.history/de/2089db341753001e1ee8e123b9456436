@@ -1,0 +1,20 @@
+[General]
+network = inet.projects.lipsin.experiments.lipsin_4x4.OsgEarthNet
+simtime-resolution = ms
+OsgEarthNet.*.lipsinConfig = xmldoc("./lipsinConfig.xml")
+OsgEarthNet.*.lipsinSender.destinationSatellites = xmldoc("./destinationSatellites.xml")
+OsgEarthNet.SAT1.hasLipsinSender = true
+OsgEarthNet.SAT1.lipsinSender.transmissionPattern = "MULTICAST"
+OsgEarthNet.SAT1.lipsinSender.startTime = 0
+OsgEarthNet.SAT1.lipsinSender.stopTime = 100
+OsgEarthNet.SAT1.lipsinSender.packetLength = 1000
+OsgEarthNet.SAT1.lipsinSender.sendInterval = 0.1
+OsgEarthNet.SAT1.lipsinSender.bloomFilterSize = 40
+OsgEarthNet.SAT1.lipsinSender.numberOfHashFunctions = 5
+OsgEarthNet.SAT9.hasLipsinReceiver = true
+OsgEarthNet.SAT8.hasLipsinReceiver = true
+OsgEarthNet.SAT13.hasLipsinReceiver = true
+OsgEarthNet.scenarioManager.script = xmldoc("./scenario.xml")
+
+# packet capacity settings
+**.eth*.mac.queue.packetCapacity = 100

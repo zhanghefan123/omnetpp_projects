@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;inet/src/inet/projects/lipsin/lipsin_global_recorder/LipsinGlobalRecorder.cpp&apos; to &apos;LipsinGlobalRecorder.cc&apos;" description="Rename resource &apos;LipsinGlobalRecorder.cpp&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/inet/projects/lipsin/lipsin_global_recorder/LipsinGlobalRecorder.cpp" name="LipsinGlobalRecorder.cc" stamp="1694583730205" updateReferences="false"/>
+</session>

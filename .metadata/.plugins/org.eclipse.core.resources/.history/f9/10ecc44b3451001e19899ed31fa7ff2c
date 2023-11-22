@@ -1,0 +1,15 @@
+[General]
+network = inet.projects.lipsin.experiments.lipsin_4x4.OsgEarthNet
+simtime-resolution = ms
+OsgEarthNet.*.lipsinConfig = xmldoc("./lipsinConfig.xml")
+OsgEarthNet.*.lipsinSender.destinationSatellites = xmldoc("./destinationSatellites.xml")
+OsgEarthNet.SAT1.hasLipsinSender = true
+OsgEarthNet.SAT1.transmissionPattern = "MULTICAST"
+OsgEarthNet.SAT1.lipsinSender.startTime = 0
+OsgEarthNet.SAT1.lipsinSender.stopTime = 10
+OsgEarthNet.SAT1.lipsinSender.packetLength = 1000
+OsgEarthNet.SAT1.lipsinSender.sendInterval = 0.01
+OsgEarthNet.SAT5.hasLipsinReceiver = true
+OsgEarthNet.SAT6.hasLipsinReceiver = true
+OsgEarthNet.SAT9.hasLipsinReceiver = true
+OsgEarthNet.scenarioManager.script = xmldoc("./scenario.xml")

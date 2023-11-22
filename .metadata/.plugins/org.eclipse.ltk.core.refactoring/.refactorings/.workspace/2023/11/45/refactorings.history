@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete 3 resources" deleteContents="false" description="Delete 3 resources" element1="/Multilayer-satellites/projects/lipsin_constellation/multi_unicast_optimal_encoding_0.005.txt" element2="/Multilayer-satellites/projects/lipsin_constellation/multi_unicast_source_encoding_0.005.txt" element3="/Multilayer-satellites/projects/lipsin_constellation/multicast_source_encoding_0.005.txt" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="3" stamp="1699260316565"/>
+</session>

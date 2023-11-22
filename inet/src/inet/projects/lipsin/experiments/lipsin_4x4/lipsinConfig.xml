@@ -1,0 +1,163 @@
+<?xml version="1.0"?> 
+<LinksConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="OSPF.xsd"> 
+<Router name="SAT0"> 
+<PhysicalLink ifName="eth0" srcId="0" destId="1" cost="1" linkId="1" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="0" destId="4" cost="1" linkId="3" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="0" destId="3" cost="1" linkId="14" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth2" srcId="0" destId="4" cost="1" linkId="3" /> 
+<VirtualLink ifName="eth1" srcId="1" destId="5" cost="1" linkId="7" /> 
+<VirtualLink ifName="eth2" srcId="7" destId="3" cost="1" linkId="16" /> 
+</Router> 
+<Router name="SAT1"> 
+<PhysicalLink ifName="eth0" srcId="1" destId="0" cost="1" linkId="2" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="1" destId="2" cost="1" linkId="5" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="1" destId="5" cost="1" linkId="7" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth0" srcId="1" destId="5" cost="1" linkId="7" /> 
+<VirtualLink ifName="eth0" srcId="4" destId="0" cost="1" linkId="4" /> 
+<VirtualLink ifName="eth2" srcId="2" destId="6" cost="1" linkId="11" /> 
+</Router> 
+<Router name="SAT4"> 
+<PhysicalLink ifName="eth0" srcId="4" destId="0" cost="1" linkId="4" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="4" destId="5" cost="1" linkId="17" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="4" destId="8" cost="1" linkId="19" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="4" destId="7" cost="1" linkId="30" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth1" srcId="1" destId="5" cost="1" linkId="7" /> 
+<VirtualLink ifName="eth1" srcId="4" destId="0" cost="1" linkId="4" /> 
+<VirtualLink ifName="eth3" srcId="4" destId="8" cost="1" linkId="19" /> 
+<VirtualLink ifName="eth2" srcId="5" destId="9" cost="1" linkId="23" /> 
+<VirtualLink ifName="eth0" srcId="7" destId="3" cost="1" linkId="16" /> 
+<VirtualLink ifName="eth3" srcId="11" destId="7" cost="1" linkId="32" /> 
+</Router> 
+<Router name="SAT2"> 
+<PhysicalLink ifName="eth0" srcId="2" destId="1" cost="1" linkId="6" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="2" destId="3" cost="1" linkId="9" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="2" destId="6" cost="1" linkId="11" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth0" srcId="2" destId="6" cost="1" linkId="11" /> 
+<VirtualLink ifName="eth0" srcId="5" destId="1" cost="1" linkId="8" /> 
+<VirtualLink ifName="eth2" srcId="3" destId="7" cost="1" linkId="15" /> 
+</Router> 
+<Router name="SAT5"> 
+<PhysicalLink ifName="eth0" srcId="5" destId="1" cost="1" linkId="8" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="5" destId="4" cost="1" linkId="18" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="5" destId="6" cost="1" linkId="21" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="5" destId="9" cost="1" linkId="23" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth0" srcId="4" destId="0" cost="1" linkId="4" /> 
+<VirtualLink ifName="eth2" srcId="2" destId="6" cost="1" linkId="11" /> 
+<VirtualLink ifName="eth2" srcId="5" destId="1" cost="1" linkId="8" /> 
+<VirtualLink ifName="eth1" srcId="5" destId="9" cost="1" linkId="23" /> 
+<VirtualLink ifName="eth3" srcId="6" destId="10" cost="1" linkId="27" /> 
+<VirtualLink ifName="eth1" srcId="8" destId="4" cost="1" linkId="20" /> 
+</Router> 
+<Router name="SAT3"> 
+<PhysicalLink ifName="eth0" srcId="3" destId="2" cost="1" linkId="10" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="3" destId="0" cost="1" linkId="13" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="3" destId="7" cost="1" linkId="15" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth2" srcId="0" destId="4" cost="1" linkId="3" /> 
+<VirtualLink ifName="eth0" srcId="3" destId="7" cost="1" linkId="15" /> 
+<VirtualLink ifName="eth0" srcId="6" destId="2" cost="1" linkId="12" /> 
+</Router> 
+<Router name="SAT6"> 
+<PhysicalLink ifName="eth0" srcId="6" destId="2" cost="1" linkId="12" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="6" destId="5" cost="1" linkId="22" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="6" destId="7" cost="1" linkId="25" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="6" destId="10" cost="1" linkId="27" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth0" srcId="5" destId="1" cost="1" linkId="8" /> 
+<VirtualLink ifName="eth2" srcId="3" destId="7" cost="1" linkId="15" /> 
+<VirtualLink ifName="eth2" srcId="6" destId="2" cost="1" linkId="12" /> 
+<VirtualLink ifName="eth1" srcId="6" destId="10" cost="1" linkId="27" /> 
+<VirtualLink ifName="eth3" srcId="7" destId="11" cost="1" linkId="31" /> 
+<VirtualLink ifName="eth1" srcId="9" destId="5" cost="1" linkId="24" /> 
+</Router> 
+<Router name="SAT7"> 
+<PhysicalLink ifName="eth0" srcId="7" destId="3" cost="1" linkId="16" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="7" destId="6" cost="1" linkId="26" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="7" destId="4" cost="1" linkId="29" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="7" destId="11" cost="1" linkId="31" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth2" srcId="0" destId="4" cost="1" linkId="3" /> 
+<VirtualLink ifName="eth3" srcId="4" destId="8" cost="1" linkId="19" /> 
+<VirtualLink ifName="eth0" srcId="6" destId="2" cost="1" linkId="12" /> 
+<VirtualLink ifName="eth2" srcId="7" destId="3" cost="1" linkId="16" /> 
+<VirtualLink ifName="eth1" srcId="7" destId="11" cost="1" linkId="31" /> 
+<VirtualLink ifName="eth1" srcId="10" destId="6" cost="1" linkId="28" /> 
+</Router> 
+<Router name="SAT8"> 
+<PhysicalLink ifName="eth0" srcId="8" destId="4" cost="1" linkId="20" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="8" destId="9" cost="1" linkId="33" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="8" destId="12" cost="1" linkId="35" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="8" destId="11" cost="1" linkId="46" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth1" srcId="5" destId="9" cost="1" linkId="23" /> 
+<VirtualLink ifName="eth1" srcId="8" destId="4" cost="1" linkId="20" /> 
+<VirtualLink ifName="eth3" srcId="8" destId="12" cost="1" linkId="35" /> 
+<VirtualLink ifName="eth2" srcId="9" destId="13" cost="1" linkId="39" /> 
+<VirtualLink ifName="eth0" srcId="11" destId="7" cost="1" linkId="32" /> 
+<VirtualLink ifName="eth3" srcId="15" destId="11" cost="1" linkId="48" /> 
+</Router> 
+<Router name="SAT9"> 
+<PhysicalLink ifName="eth0" srcId="9" destId="5" cost="1" linkId="24" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="9" destId="8" cost="1" linkId="34" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="9" destId="10" cost="1" linkId="37" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="9" destId="13" cost="1" linkId="39" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth2" srcId="6" destId="10" cost="1" linkId="27" /> 
+<VirtualLink ifName="eth0" srcId="8" destId="4" cost="1" linkId="20" /> 
+<VirtualLink ifName="eth2" srcId="9" destId="5" cost="1" linkId="24" /> 
+<VirtualLink ifName="eth1" srcId="9" destId="13" cost="1" linkId="39" /> 
+<VirtualLink ifName="eth3" srcId="10" destId="14" cost="1" linkId="43" /> 
+<VirtualLink ifName="eth1" srcId="12" destId="8" cost="1" linkId="36" /> 
+</Router> 
+<Router name="SAT10"> 
+<PhysicalLink ifName="eth0" srcId="10" destId="6" cost="1" linkId="28" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="10" destId="9" cost="1" linkId="38" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="10" destId="11" cost="1" linkId="41" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="10" destId="14" cost="1" linkId="43" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth2" srcId="7" destId="11" cost="1" linkId="31" /> 
+<VirtualLink ifName="eth0" srcId="9" destId="5" cost="1" linkId="24" /> 
+<VirtualLink ifName="eth2" srcId="10" destId="6" cost="1" linkId="28" /> 
+<VirtualLink ifName="eth1" srcId="10" destId="14" cost="1" linkId="43" /> 
+<VirtualLink ifName="eth3" srcId="11" destId="15" cost="1" linkId="47" /> 
+<VirtualLink ifName="eth1" srcId="13" destId="9" cost="1" linkId="40" /> 
+</Router> 
+<Router name="SAT11"> 
+<PhysicalLink ifName="eth0" srcId="11" destId="7" cost="1" linkId="32" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="11" destId="10" cost="1" linkId="42" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="11" destId="8" cost="1" linkId="45" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth3" srcId="11" destId="15" cost="1" linkId="47" linkType="inter-orbit" /> 
+<VirtualLink ifName="eth2" srcId="4" destId="8" cost="1" linkId="19" /> 
+<VirtualLink ifName="eth3" srcId="8" destId="12" cost="1" linkId="35" /> 
+<VirtualLink ifName="eth0" srcId="10" destId="6" cost="1" linkId="28" /> 
+<VirtualLink ifName="eth2" srcId="11" destId="7" cost="1" linkId="32" /> 
+<VirtualLink ifName="eth1" srcId="11" destId="15" cost="1" linkId="47" /> 
+<VirtualLink ifName="eth1" srcId="14" destId="10" cost="1" linkId="44" /> 
+</Router> 
+<Router name="SAT12"> 
+<PhysicalLink ifName="eth0" srcId="12" destId="8" cost="1" linkId="36" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="12" destId="13" cost="1" linkId="49" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="12" destId="15" cost="1" linkId="56" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth1" srcId="9" destId="13" cost="1" linkId="39" /> 
+<VirtualLink ifName="eth1" srcId="12" destId="8" cost="1" linkId="36" /> 
+<VirtualLink ifName="eth0" srcId="15" destId="11" cost="1" linkId="48" /> 
+</Router> 
+<Router name="SAT13"> 
+<PhysicalLink ifName="eth0" srcId="13" destId="9" cost="1" linkId="40" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="13" destId="12" cost="1" linkId="50" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="13" destId="14" cost="1" linkId="51" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth2" srcId="10" destId="14" cost="1" linkId="43" /> 
+<VirtualLink ifName="eth0" srcId="12" destId="8" cost="1" linkId="36" /> 
+<VirtualLink ifName="eth2" srcId="13" destId="9" cost="1" linkId="40" /> 
+</Router> 
+<Router name="SAT14"> 
+<PhysicalLink ifName="eth0" srcId="14" destId="10" cost="1" linkId="44" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="14" destId="13" cost="1" linkId="52" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="14" destId="15" cost="1" linkId="53" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth2" srcId="11" destId="15" cost="1" linkId="47" /> 
+<VirtualLink ifName="eth0" srcId="13" destId="9" cost="1" linkId="40" /> 
+<VirtualLink ifName="eth2" srcId="14" destId="10" cost="1" linkId="44" /> 
+</Router> 
+<Router name="SAT15"> 
+<PhysicalLink ifName="eth0" srcId="15" destId="11" cost="1" linkId="48" linkType="inter-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="15" destId="14" cost="1" linkId="54" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth2" srcId="15" destId="12" cost="1" linkId="55" linkType="intra-orbit" /> 
+<VirtualLink ifName="eth2" srcId="8" destId="12" cost="1" linkId="35" /> 
+<VirtualLink ifName="eth0" srcId="14" destId="10" cost="1" linkId="44" /> 
+<VirtualLink ifName="eth2" srcId="15" destId="11" cost="1" linkId="48" /> 
+</Router> 
+</LinksConfig>

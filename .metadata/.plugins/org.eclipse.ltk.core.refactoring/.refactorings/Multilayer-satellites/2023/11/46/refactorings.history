@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;Multilayer-satellites/projects/ospf_constellation/OsgEarthNet_global_statistic.txt&apos; to &apos;ospf_right.txt&apos;" description="Rename resource &apos;OsgEarthNet_global_statistic.txt&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="projects/ospf_constellation/OsgEarthNet_global_statistic.txt" name="ospf_right.txt" stamp="1699859318207" updateReferences="true"/>
+</session>

@@ -1,0 +1,7 @@
+<Satellites>
+	<Satellite id="1">
+		<Destination>5</Destination>
+		<Destination>6</Destination>
+		<Destination>9</Destination>
+	</Satellite>
+</Satellites>

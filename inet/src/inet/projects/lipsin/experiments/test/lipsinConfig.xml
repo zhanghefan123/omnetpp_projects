@@ -1,0 +1,47 @@
+<?xml version="1.0"?> 
+<LinksConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="OSPF.xsd"> 
+<Router name="SAT0"> 
+<PhysicalLink ifName="eth0" srcId="0" destId="1" cost="1" linkId="1" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="0" destId="10" cost="1" linkId="22" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT1"> 
+<PhysicalLink ifName="eth0" srcId="1" destId="0" cost="1" linkId="2" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="1" destId="2" cost="1" linkId="3" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT2"> 
+<PhysicalLink ifName="eth0" srcId="2" destId="1" cost="1" linkId="4" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="2" destId="3" cost="1" linkId="5" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT3"> 
+<PhysicalLink ifName="eth0" srcId="3" destId="2" cost="1" linkId="6" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="3" destId="4" cost="1" linkId="7" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT4"> 
+<PhysicalLink ifName="eth0" srcId="4" destId="3" cost="1" linkId="8" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="4" destId="5" cost="1" linkId="9" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT5"> 
+<PhysicalLink ifName="eth0" srcId="5" destId="4" cost="1" linkId="10" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="5" destId="6" cost="1" linkId="11" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT6"> 
+<PhysicalLink ifName="eth0" srcId="6" destId="5" cost="1" linkId="12" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="6" destId="7" cost="1" linkId="13" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT7"> 
+<PhysicalLink ifName="eth0" srcId="7" destId="6" cost="1" linkId="14" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="7" destId="8" cost="1" linkId="15" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT8"> 
+<PhysicalLink ifName="eth0" srcId="8" destId="7" cost="1" linkId="16" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="8" destId="9" cost="1" linkId="17" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT9"> 
+<PhysicalLink ifName="eth0" srcId="9" destId="8" cost="1" linkId="18" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="9" destId="10" cost="1" linkId="19" linkType="intra-orbit" /> 
+</Router> 
+<Router name="SAT10"> 
+<PhysicalLink ifName="eth0" srcId="10" destId="9" cost="1" linkId="20" linkType="intra-orbit" /> 
+<PhysicalLink ifName="eth1" srcId="10" destId="0" cost="1" linkId="21" linkType="intra-orbit" /> 
+</Router> 
+</LinksConfig>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;inet/src/inet/projects/dtn_network/dtn_module/dtn_traffic.c&apos; to &apos;dtn_traffic.cc&apos;" description="Rename resource &apos;dtn_traffic.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/inet/projects/dtn_network/dtn_module/dtn_traffic.c" name="dtn_traffic.cc" stamp="1684743459712" updateReferences="false"/>
+</session>

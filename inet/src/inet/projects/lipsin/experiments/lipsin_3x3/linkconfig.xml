@@ -1,0 +1,16 @@
+<config><SatToSat src-module='LEO0' src-gate='ethg[0]' dest-module='LEO1' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO0' src-gate='ethg[1]' dest-module='LEO3' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='inter-orbit'/>\ 
+<SatToSat src-module='LEO1' src-gate='ethg[1]' dest-module='LEO2' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO1' src-gate='ethg[2]' dest-module='LEO4' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='inter-orbit'/>\ 
+<SatToSat src-module='LEO2' src-gate='ethg[1]' dest-module='LEO0' dest-gate='ethg[2]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO2' src-gate='ethg[2]' dest-module='LEO5' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='inter-orbit'/>\ 
+<SatToSat src-module='LEO3' src-gate='ethg[1]' dest-module='LEO4' dest-gate='ethg[1]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO3' src-gate='ethg[2]' dest-module='LEO6' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='inter-orbit'/>\ 
+<SatToSat src-module='LEO4' src-gate='ethg[2]' dest-module='LEO5' dest-gate='ethg[1]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO4' src-gate='ethg[3]' dest-module='LEO7' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='inter-orbit'/>\ 
+<SatToSat src-module='LEO5' src-gate='ethg[2]' dest-module='LEO3' dest-gate='ethg[3]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO5' src-gate='ethg[3]' dest-module='LEO8' dest-gate='ethg[0]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='inter-orbit'/>\ 
+<SatToSat src-module='LEO6' src-gate='ethg[1]' dest-module='LEO7' dest-gate='ethg[1]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO7' src-gate='ethg[2]' dest-module='LEO8' dest-gate='ethg[1]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+<SatToSat src-module='LEO8' src-gate='ethg[2]' dest-module='LEO6' dest-gate='ethg[2]' channel-type='masterNodes.OsgEarthNet.SatToSat_10Mbps' link-info='intra-orbit'/>\ 
+</config>

@@ -1,0 +1,50 @@
+[General]
+network = inet.projects.dtn_network.dtn
+
+dtn.host*.dtn.check_expiration_interval = 2s
+dtn.host*.dtn.expiration_time = 1s
+
+dtn.host*.numApps = 1
+dtn.host1.app[0].typename = "DtnNeighborDetectionApp"
+dtn.host1.app[0].localPort = 1000
+dtn.host1.app[0].destPort = 1000
+dtn.host1.app[0].destAddresses = "224.23.23.23"
+dtn.host1.app[0].startTime = 1s
+dtn.host1.app[0].stopTime = 10s
+dtn.host1.app[0].sendInterval = 2s
+dtn.host1.app[0].messageLength = 1000B
+
+dtn.host2.app[0].typename = "DtnNeighborDetectionApp"
+dtn.host2.app[0].onlyReceive = true
+dtn.host2.app[0].localPort = 1000
+dtn.host2.app[0].destPort = 1000
+dtn.host2.app[0].destAddresses = "224.23.23.23"
+dtn.host2.app[0].startTime = 1s
+dtn.host2.app[0].stopTime = 10s
+dtn.host2.app[0].sendInterval = 2s
+dtn.host2.app[0].messageLength = 1000B
+
+dtn.host3.app[0].typename = "DtnNeighborDetectionApp"
+dtn.host3.app[0].onlyReceive = true
+dtn.host3.app[0].localPort = 1000
+dtn.host3.app[0].destPort = 1000
+dtn.host3.app[0].destAddresses = "224.23.23.23"
+dtn.host3.app[0].startTime = 1s
+dtn.host3.app[0].stopTime = 10s
+dtn.host3.app[0].sendInterval = 2s
+dtn.host3.app[0].messageLength = 1000B
+
+
+dtn.host4.app[0].typename = "DtnNeighborDetectionApp"
+dtn.host4.app[0].onlyReceive = true
+dtn.host4.app[0].localPort = 1000
+dtn.host4.app[0].destPort = 1000
+dtn.host4.app[0].destAddresses = "224.23.23.23"
+dtn.host4.app[0].startTime = 1s
+dtn.host4.app[0].stopTime = 10s
+dtn.host4.app[0].sendInterval = 2s
+dtn.host4.app[0].messageLength = 1000B
+
+
+
+**.configurator.config = xmldoc("ipv4Config.xml")

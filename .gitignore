@@ -1,0 +1,13 @@
+cmake-build-debug/
+constellation_generator/
+.idea/
+inet/out/
+Multilayer-satellites/out/
+Multilayer-satellites/projects/
+
+*.sca
+*.txt
+*.log
+*.vec
+*.vci
+*.so
