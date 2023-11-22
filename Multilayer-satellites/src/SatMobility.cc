@@ -11,7 +11,6 @@
 #ifdef WITH_OSGEARTH
 
 #include <sstream>
-#include <iomanip>
 #include <iostream>
 #include <osg/Node>
 #include <osg/Texture>

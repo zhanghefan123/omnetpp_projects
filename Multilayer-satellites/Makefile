@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for Multilayer-satellites
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep -KMULTILAYER_SATELLITES_PROJ=. -KINET_PROJ=../inet -DWITH_OSG -DWITH_OSGEARTH -DINET_IMPORT -I$$\(INET_PROJ\)/src -L$$\(INET_PROJ\)/src -lINET$$\(D\)
+#  opp_makemake -f --deep -KMULTILAYER_SATELLITES_PROJ=. -KINET_PROJ=../inet -DWITH_OSG -DWITH_OSGEARTH -DINET_IMPORT -Iheaders -I$$\(INET_PROJ\)/src -L$$\(INET_PROJ\)/src -lINET$$\(D\)
 #
 
 # Name of target to be created (-o option)
@@ -19,7 +19,7 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(QTENV_LIBS) $(CMDENV_LIBS)
 #USERIF_LIBS = $(QTENV_LIBS)
 
 # C++ include paths (with -I)
-INCLUDE_PATH = -I$(INET_PROJ)/src
+INCLUDE_PATH = -Iheaders -I$(INET_PROJ)/src
 
 # Additional object and library files to link with
 EXTRA_OBJS =
@@ -34,14 +34,14 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
 OBJS = \
-    $O/ChannelController.o \
-    $O/fallback.o \
-    $O/GroundNodeMobility.o \
-    $O/HAPMobility.o \
-    $O/OsgEarthScene.o \
-    $O/SatMobility.o \
-    $O/terNetMobility.o \
-    $O/channels/SatToSat.o
+    $O/channels/SatToSat.o \
+    $O/src/ChannelController.o \
+    $O/src/fallback.o \
+    $O/src/GroundNodeMobility.o \
+    $O/src/HAPMobility.o \
+    $O/src/OsgEarthScene.o \
+    $O/src/SatMobility.o \
+    $O/src/terNetMobility.o
 
 # Message files
 MSGFILES =

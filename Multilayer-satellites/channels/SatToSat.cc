@@ -16,7 +16,6 @@
 //
 #include "inet/common/geometry/common/Coord.h"
 #include "SatToSat.h"
-
 #include <cmath>
 Register_Class(SatToSat);
 
