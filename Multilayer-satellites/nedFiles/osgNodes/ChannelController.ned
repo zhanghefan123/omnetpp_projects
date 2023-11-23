@@ -37,13 +37,13 @@ simple ChannelController
     double groundToHighWidth = default(2);
     
     double faultRate = default(0);
-    int faultInterval = default(20);
+    double faultInterval = default(20);
     int recoverInterval = default(5);
 
     int rngNumber = default(1);
     
     xml config = default(xml("<config></config>"));
 
-    double calculatePositionInterval = default(0.01);
+    double updatePositionInterval = default(0.01);
     double calculateLinkFailureInterval = default(10);
 }

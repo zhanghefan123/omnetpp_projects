@@ -44,7 +44,7 @@ class INET_API ChannelController : public cListener, public cSimpleModule
 
     // ------------- link failure rate related ----------------------------------
     int rngNumber = 1;
-    int faultInterval = 20;
+    double faultInterval = 20;
     int recoverInterval = 5;
     double faultRate = 0;
     double calculateLinkFailureInterval = 0;

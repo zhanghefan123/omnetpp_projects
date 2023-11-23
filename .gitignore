@@ -11,3 +11,5 @@ Multilayer-satellites/projects/
 *.vec
 *.vci
 *.so
+*_m.cc
+*_m.h

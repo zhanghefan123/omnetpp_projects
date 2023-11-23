@@ -37,11 +37,10 @@ OBJS = \
     $O/src/ChannelController.o \
     $O/src/fallback.o \
     $O/src/GroundNodeMobility.o \
-    $O/src/HAPMobility.o \
     $O/src/OsgEarthScene.o \
     $O/src/SatMobility.o \
     $O/src/SatToSat.o \
-    $O/src/terNetMobility.o
+    $O/src/tools/MultilayerTools.o
 
 # Message files
 MSGFILES =

@@ -73,7 +73,7 @@ void ChannelController::initialize(int stage)
             satToGroundWidth = par(PAR_SAT_TO_GROUND_WIDTH.c_str()).doubleValue();
 
             faultRate = par(PAR_FAULT_RATE.c_str()).doubleValue();
-            faultInterval = int(par(PAR_FAULT_INTERVAL.c_str()).intValue());
+            faultInterval = double(par(PAR_FAULT_INTERVAL.c_str()).doubleValue());
             rngNumber = int(par(PAR_RNG_NUMBER.c_str()).intValue());
             recoverInterval = int(par(PAR_RECOVER_INTERVAL.c_str()).intValue());
 
@@ -591,10 +591,11 @@ GatePair ChannelController::getGatePair(const cXMLElement *node)
      */
     // 获取链路标签的 src 属性 - 如果不为空
     const char* sourceGatePath = node->getAttribute(ATTR_SRCGATE.c_str()); // ethg[0]
+    const char* sourceModulePath = node->getAttribute(ATTR_SRCMODULE.c_str()); // src module
     if (strcmp(sourceGatePath, "") != 0) {
 
         // ------ 那么我们通过 getModuleByPath 进行 gate 的获取 -----
-        cModule *srcModule = getModuleByPath(sourceGatePath);
+        cModule *srcModule = getModuleByPath(sourceModulePath);
         // ------ 那么我们通过 getModuleByPath 进行 gate 的获取 -----
 
         // -------------------------------进行门的名和索引的获取---------------------------------------
