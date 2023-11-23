@@ -11,7 +11,7 @@
 // Represents a satellite. Loads the 3D model from the given file, and 
 // moves it along the specified orbit.
 //
-package osgNodes;
+package nedFiles.osgNodes;
 
 import inet.mobility.base.MobilityBase;
 

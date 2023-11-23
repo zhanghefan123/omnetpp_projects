@@ -11,7 +11,7 @@
 // Represents a satellite ground station at the given longitude/latitude.
 //
 
-package osgNodes;
+package nedFiles.osgNodes;
 
 import inet.mobility.base.MobilityBase;
 

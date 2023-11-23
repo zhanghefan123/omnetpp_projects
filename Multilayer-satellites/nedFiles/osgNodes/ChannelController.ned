@@ -11,7 +11,7 @@
 // This module is responsible for tracking the distances of mobile nodes,
 // and visualizing the connectivity graph via osgEarth.
 //
-package osgNodes;
+package nedFiles.osgNodes;
 
 simple ChannelController
 {

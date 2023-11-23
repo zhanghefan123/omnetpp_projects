@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package osgNodes;
+package nedFiles.osgNodes;
 
 import inet.node.inet.StandardHost;
 import inet.routing.contract.IOspf;

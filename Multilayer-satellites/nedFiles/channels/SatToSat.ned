@@ -1,7 +1,7 @@
 //
 // This program is property of its copyright holder. All rights reserved.
 //
-package channels;
+package nedFiles.channels;
 
 
 import inet.common.misc.ThruputMeteringChannel;

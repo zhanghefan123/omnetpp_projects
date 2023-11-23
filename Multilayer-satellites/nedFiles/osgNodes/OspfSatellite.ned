@@ -13,9 +13,9 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package osgNodes;
+package nedFiles.osgNodes;
 
-import osgNodes.SatHost;
+import nedFiles.osgNodes.SatHost;
 import inet.applications.contract.IApp;
 import inet.routing.contract.IOspf;
 import inet.projects.dtn_network.dtn_module.dtn;

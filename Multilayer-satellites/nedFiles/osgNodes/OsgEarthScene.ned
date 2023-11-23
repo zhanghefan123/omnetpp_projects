@@ -13,7 +13,7 @@
 // the Earth 360deg/24h.
 //
 
-package osgNodes;
+package nedFiles.osgNodes;
 
 simple OsgEarthScene
 {
