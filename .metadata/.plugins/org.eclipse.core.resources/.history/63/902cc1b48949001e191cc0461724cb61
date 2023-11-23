@@ -1,4 +1,0 @@
-[General]
-network = inet.projects.lipsin.test.lipsin
-lipsin.host1.lipsinConfig = xmldoc("./lipsinConfig.xml")
-lipsin.host1.satelliteId = 0

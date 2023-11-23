@@ -19,30 +19,13 @@
 #include <osg/ValueObject>
 #include <osg/LineWidth>
 #include <osg/Depth>
-#include "const_vars.h"
-#include "inet/projects/lipsin/lipsin_app/LipsinSender.h"
-#include "inet/projects/lipsin/lipsin_app/LipsinReceiver.h"
+#include "ConstVars.h"
 
 using namespace osgEarth;
 using namespace osgEarth::Annotation;
 using namespace osgEarth::Features;
 
 Define_Module(ChannelController);
-
-
-static const char *LINKTYPE_SATTOSAT = "SatToSat";
-static const char *LINKTYPE_SATTOHIGH = "SatToHigh";
-static const char *LINKTYPE_SATTOGROUND = "SatToGround";
-static const char *LINKTYPE_HIGHTOHIGH = "HighToHigh";
-static const char *LINKTYPE_HIGHTOGROUND = "HighToGround";
-static const char *LINKTYPE_GROUNDTOGROUND = "GroundToGround";
-
-static const char *ATTR_SRCMODULE = "src-module";
-static const char *ATTR_SRCGATE = "src-gate";
-static const char *ATTR_DESTMODULE = "dest-module";
-static const char *ATTR_DESTGATE = "dest-gate";
-static const char *ATTR_CHANNELTYPE = "channel-type";
-static const char *ATTR_LINKINFO = "link-info";
 
 
 template<typename T>
@@ -65,11 +48,14 @@ ChannelController::~ChannelController(){
 }
 
 
-
 void ChannelController::initialize(int stage)
 {
+    /**
+     * @brief ChannelController::initialize
+     * @param stage: the initialization stage of the module
+     */
     switch (stage) {
-    case 0:
+    case 0:{
         satToSatColor = par("satToSatColor").stringValue();
         satToSatAnotherColor = par("satToSatAnotherColor").stringValue();
         satToSatWidth = par("satToSatWidth").doubleValue();
@@ -84,6 +70,7 @@ void ChannelController::initialize(int stage)
         recoverInterval = int(par(PAR_RECOVER_INTERVAL.c_str()).intValue());
         rngNumber = int(par("rngNumber").intValue());
         break;
+    }
     case 1:
         scene = OsgEarthScene::getInstance()->getScene()->asGroup();
         connections = new osg::Geode();

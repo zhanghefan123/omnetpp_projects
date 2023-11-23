@@ -4,7 +4,7 @@ constellation_generator/
 inet/out/
 Multilayer-satellites/out/
 Multilayer-satellites/projects/
-
+.metadata/
 *.sca
 *.txt
 *.log

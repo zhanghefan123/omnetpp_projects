@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;Multilayer-satellites/projects/lipsin_constellation/OsgEarthNet_global_statistic.txt&apos; to &apos;lipsin_hello_with_1s_statistic.txt&apos;" description="Rename resource &apos;OsgEarthNet_global_statistic.txt&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="projects/lipsin_constellation/OsgEarthNet_global_statistic.txt" name="lipsin_hello_with_1s_statistic.txt" stamp="1697075228844" updateReferences="true"/>
-</session>

@@ -34,13 +34,13 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
 OBJS = \
-    $O/channels/SatToSat.o \
     $O/src/ChannelController.o \
     $O/src/fallback.o \
     $O/src/GroundNodeMobility.o \
     $O/src/HAPMobility.o \
     $O/src/OsgEarthScene.o \
     $O/src/SatMobility.o \
+    $O/src/SatToSat.o \
     $O/src/terNetMobility.o
 
 # Message files

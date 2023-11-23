@@ -1,9 +1,0 @@
-<scenario>
-	<at t="2s">
-		<disconnect src-module="SAT1" src-gate="ethg[2]"></disconnect>
-		
-	</at>
-	<at t="3s">
-		<disconnect src-module="SAT0" src-gate="ethg[1]"></disconnect>
-	</at>
-</scenario>

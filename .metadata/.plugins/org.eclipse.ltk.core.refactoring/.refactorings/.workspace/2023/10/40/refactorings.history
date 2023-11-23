@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete 2 resources" deleteContents="false" description="Delete 2 resources" element1="/Multilayer-satellites/projects/lipsin_constellation/SAT4_sender_statistic.txt" element2="/Multilayer-satellites/projects/lipsin_constellation/SAT65_receiver_statistic.txt" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="2" stamp="1696646015876"/>
-</session>
