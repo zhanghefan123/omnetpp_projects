@@ -19,17 +19,13 @@
 #include <cmath>
 Register_Class(SatToSat);
 
-
-
 void SatToSat::initialize()
 {
-        cDatarateChannel::initialize();
+        cDatarateChannel::initialize(); // NOLINT
         displayAsTooltip = par("displayAsTooltip");
         fmt = par("thruputDisplayFormat");
         host = getContainingNode(getSourceGate()->getOwnerModule()); //get the containing node LEO XX and let it subscribe the signal
-//        host->subscribe(checkISLDistanceSignal,this);
         initialized = true;
-
 }
 void SatToSat::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details){
     Enter_Method("SatToSatThruputMeteringChannel::receiveSignal");

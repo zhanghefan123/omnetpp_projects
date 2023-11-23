@@ -19,7 +19,7 @@
 #include <osg/ValueObject>
 #include <osg/LineWidth>
 #include <osg/Depth>
-#include "const_vars.h"
+#include "ConstVars.h"
 #include "inet/projects/lipsin/lipsin_app/LipsinSender.h"
 #include "inet/projects/lipsin/lipsin_app/LipsinReceiver.h"
 

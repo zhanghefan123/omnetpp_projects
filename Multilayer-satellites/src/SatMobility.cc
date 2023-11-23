@@ -30,7 +30,7 @@
 #include "SatMobility.h"
 #include "OsgEarthScene.h"
 #include "ChannelController.h"
-#include "const_vars.h"
+#include "ConstVars.h"
 
 using namespace omnetpp;
 using namespace inet;
