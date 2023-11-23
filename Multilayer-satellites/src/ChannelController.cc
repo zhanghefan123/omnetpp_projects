@@ -8,18 +8,18 @@
 //
 
 #if defined(WITH_OSG) && defined(WITH_OSGEARTH)
+#include <osg/Geometry>
+#include <osgEarthUtil/LinearLineOfSight>
+#include <osgUtil/UpdateVisitor>
+#include <osg/LineWidth>
+#include <osg/Depth>
 #include "ChannelController.h"
 #include "inet/common/XMLUtils.h"
 #include "SatMobility.h"
-#include "HAPMobility.h"
 #include "GroundNodeMobility.h"
 #include "inet/common/Simsignals.h"
-#include <osgEarthUtil/LinearLineOfSight>
-#include <osgUtil/UpdateVisitor>
-#include <osg/ValueObject>
-#include <osg/LineWidth>
-#include <osg/Depth>
 #include "ConstVars.h"
+#include "MultilayerTools.h"
 
 using namespace osgEarth;
 using namespace osgEarth::Annotation;
@@ -28,11 +28,20 @@ using namespace osgEarth::Features;
 Define_Module(ChannelController);
 
 
-template<typename T>
-bool contains(const std::vector<T>& vector, T item) { return std::find(vector.begin(), vector.end(), item) != vector.end(); }
-
 ChannelController::~ChannelController(){
-    // traverse the linkList and delete the tmp.upMessage and tmp.downMessage
+    /**
+     * @brief 进行所有事件的清空
+     */
+    if(updatePositionEvent != nullptr){
+        this->cancelEvent(updatePositionEvent);
+        delete this->updatePositionEvent;
+    }
+
+    if(calculateLinkFailureEvent != nullptr){
+        this->cancelEvent(calculateLinkFailureEvent);
+        delete this->calculateLinkFailureEvent;
+    }
+
     for(auto &link:downMessageToLinkMap){
         if(link.first != nullptr){
             this->cancelEvent(link.first);
@@ -55,85 +64,53 @@ void ChannelController::initialize(int stage)
      * @param stage: the initialization stage of the module
      */
     switch (stage) {
-    case 0:{
-        satToSatColor = par("satToSatColor").stringValue();
-        satToSatAnotherColor = par("satToSatAnotherColor").stringValue();
-        satToSatWidth = par("satToSatWidth").doubleValue();
-        satToGroundColor = par("satToGroundColor").stringValue();
-        satToGroundWidth = par("satToGroundWidth").doubleValue();
-        satToHighColor = par("satToHighColor").stringValue();
-        satToHighWidth = par("satToHighWidth").doubleValue();
-        groundToHighColor = par("groundToHighColor").stringValue();
-        groundToHighWidth = par("groundToHighWidth").doubleValue();
-        faultRate = par(PAR_FAULT_RATE.c_str()).doubleValue();
-        faultInterval = int(par(PAR_FAULT_INTERVAL.c_str()).intValue());
-        recoverInterval = int(par(PAR_RECOVER_INTERVAL.c_str()).intValue());
-        rngNumber = int(par("rngNumber").intValue());
-        break;
-    }
-    case 1:
-        scene = OsgEarthScene::getInstance()->getScene()->asGroup();
-        connections = new osg::Geode();
-        scene->addChild(connections);
-        break;
-    case 2:
-        loadXMLConfig();
-        subscribe(enterPolarAreaSignal,this);
-        subscribe(leavePolarAreaSignal,this);
-        subscribe(checkSatToGroundSignal,this);
-        timeout = 0.01;
-        timeOutEvent = new cMessage("timeoutEvent");
-        scheduleAt(simTime() + timeout, timeOutEvent);
-        break;
-    default:
-        break;
-    }
-}
-//helper function
-static bool parseIndexedName(const char *s, std::string& name, int& index)
-{
-    const char *b;
-    if ((b = strchr(s, '[')) == nullptr || s[strlen(s) - 1] != ']') {
-        name = s;
-        index = -1;
-        return false;
-    }
-    else {
-        name.assign(s, b - s);
-        index = atoi(b + 1);
-        return true;
+        case 0:{
+            satToSatColor = par(PAR_SAT_TO_SAT_COLOR.c_str()).stringValue();
+            satToSatAnotherColor = par(PAR_SAT_TO_SAT_ANOTHER_COLOR.c_str()).stringValue();
+            satToSatWidth = par(PAR_SAT_TO_SAT_WIDTH.c_str()).doubleValue();
+
+            satToGroundColor = par(PAR_SAT_TO_GROUND_COLOR.c_str()).stringValue();
+            satToGroundWidth = par(PAR_SAT_TO_GROUND_WIDTH.c_str()).doubleValue();
+
+            faultRate = par(PAR_FAULT_RATE.c_str()).doubleValue();
+            faultInterval = int(par(PAR_FAULT_INTERVAL.c_str()).intValue());
+            rngNumber = int(par(PAR_RNG_NUMBER.c_str()).intValue());
+            recoverInterval = int(par(PAR_RECOVER_INTERVAL.c_str()).intValue());
+
+            break;
+        }
+        case 1:{
+            scene = OsgEarthScene::getInstance()->getScene()->asGroup();
+            connections = new osg::Geode();
+            scene->addChild(connections);
+            break;
+        }
+        case 2:{
+            loadXMLConfig();
+            subscribe(enterPolarAreaSignal,this);
+            subscribe(leavePolarAreaSignal,this);
+            subscribe(checkSatToGroundSignal,this);
+            initializeAllEvents();
+            break;
+        }
+        default:
+            break;
     }
 }
-static double calculateDistance(Coord s,Coord d){
-    double x1,x2,y1,y2,z1,z2,xDis,yDis,zDis;
-    x1 = s.getX();
-    x2 = d.getX();
-    y1 = s.getY();
-    y2 = d.getY();
-    z1 = s.getZ();
-    z2 = d.getZ();
-    xDis = std::abs(x1 - x2);
-    yDis = std::abs(y1 - y2);
-    zDis = std::abs(z1 - z2);
-    return std::sqrt(xDis*xDis + yDis*yDis + zDis*zDis) * 2;
-}
+
 void ChannelController::checkSatToOtherLink(cModule *srcSat){
     std::string srcMobiName = std::string(srcSat->getFullPath()) + std::string(".mobility");
-    SatMobility *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
-    for(const auto &linkIndex:satToOthersLinkMap[srcSat]){
+    auto *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
+    for(const auto &linkIndex:satToGroundStationsLinkMap[srcSat]){
         bool connect = true;
         double dis,maxDis;
         std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
-        if(dynamic_cast<HAPMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
-            HAPMobility *destMobi = dynamic_cast<HAPMobility*>(getModuleByPath(destMobiName.c_str()));
-            dis = calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition()),maxDis = srcMobi->getHorizonDistance();
-            if(dis > maxDis)    connect = false;
-        }else if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
-            GroundNodeMobility *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-            dis = calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition()),maxDis = srcMobi->getHorizonDistance();
+        if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
+            auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
+            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition()),maxDis = srcMobi->getHorizonDistance();
             if(dis > maxDis)  connect = false;
         }else{
-            throw cRuntimeError("Undefined destMobility!");
+            throw cRuntimeError("Undefined destMobility!"); // NOLINT
         }
         if(linkList[linkIndex].state == 1 && !connect){
             linkList[linkIndex].state = 0;
@@ -148,197 +125,139 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
         }
     }
 }
-void ChannelController::addOtherToOtherLink(const cXMLElement *node){
-    Link tmp;
-    std::string tag = node->getTagName();
-    cModule *srcMod = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE));
-    cModule *destMod = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE));
-
-    if (srcMod->getParentModule() != destMod->getParentModule())
-        throw cRuntimeError("'src-module' and 'dest-module' must have the same parent module");
-    const char *channelTypeName = node->getAttribute(ATTR_CHANNELTYPE);
-    cChannelType *channelType = channelTypeName ? cChannelType::get(channelTypeName) : nullptr;
-    tmp.state = 1;
-    tmp.srcMod = srcMod;
-    tmp.destMod = destMod;
-    tmp.channelType = channelType;
-    tmp.gatePair = getConnection(node);
-    if(tag == LINKTYPE_HIGHTOHIGH){
-        std::string srcMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE)) + std::string(".mobility"),
-                destMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE)) + std::string(".mobility");
-        HAPMobility *srcMobi = dynamic_cast<HAPMobility*>(getModuleByPath(srcMobiName.c_str()));
-        HAPMobility *destMobi = dynamic_cast<HAPMobility*>(getModuleByPath(destMobiName.c_str()));
-        tmp.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 3);
-        tmp.state = 1;
-    }else if(tag == LINKTYPE_HIGHTOGROUND){
-        std::string srcMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE)) + std::string(".mobility"),
-                destMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE)) + std::string(".mobility");
-        HAPMobility *srcMobi = dynamic_cast<HAPMobility*>(getModuleByPath(srcMobiName.c_str()));
-        GroundNodeMobility *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-        tmp.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 3);
-        tmp.state = 1;
-    }else if(tag == LINKTYPE_GROUNDTOGROUND){
-        std::string srcMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE)) + std::string(".mobility"),
-                destMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE)) + std::string(".mobility");
-        GroundNodeMobility *srcMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(srcMobiName.c_str()));
-        GroundNodeMobility *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-        tmp.los = nullptr;
-        tmp.state = 1;
-    }
-    EV << "Successfully add the link " << node->getTagName()<< "between " << srcMod->getFullPath() << " and " << destMod->getFullPath() <<endl;
-    linkList.push_back(tmp);
-}
 
 void ChannelController::addSatToOtherLink(const cXMLElement *node){
-    Link tmp;
-    std::string tag = node->getTagName();
-    cModule *srcMod = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE));
-    cModule *destMod = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE));
-
-    if (srcMod->getParentModule() != destMod->getParentModule())
-        throw cRuntimeError("'src-module' and 'dest-module' must have the same parent module");
-    const char *channelTypeName = node->getAttribute(ATTR_CHANNELTYPE);
+    /**
+     * @brief addSatToOtherLink 添加从卫星到地面站的链路
+     * @param node xml 标签，代表一条链路
+     */
+    // --------------------------------------- create link --------------------------------------------------------------
+    Link satToGroundLink; // create a gsl link
+    std::string tag = node->getTagName(); // get tagname
+    std::string srcModuleName = node->getAttribute(ATTR_SRCMODULE.c_str()); // get src module name
+    std::string destModuleName = node->getAttribute(ATTR_DESTMODULE.c_str()); // get dest module name
+    cModule* srcModule = getModuleByPath(srcModuleName.c_str()); // get src module
+    cModule* destModule = getModuleByPath(destModuleName.c_str()); // get dest module
+    if (srcModule->getParentModule() != destModule->getParentModule())
+        throw cRuntimeError("'src-module' and 'dest-module' must have the same parent the osg earth"); // NOLINT
+    const char *channelTypeName = node->getAttribute(ATTR_CHANNELTYPE.c_str());
     cChannelType *channelType = channelTypeName ? cChannelType::get(channelTypeName) : nullptr;
-    tmp.state = 1;
-    tmp.srcMod = srcMod;
-    tmp.destMod = destMod;
-    tmp.channelType = channelType;
-    tmp.gatePair = getConnection(node);
-    if(tag == LINKTYPE_SATTOHIGH){
-        std::string srcMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE)) + std::string(".mobility"),
-                destMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE)) + std::string(".mobility");
-        SatMobility *srcMobi = dynamic_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
-        HAPMobility *destMobi = dynamic_cast<HAPMobility*>(getModuleByPath(destMobiName.c_str()));
-        tmp.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 2);
-        tmp.state = 1;
-    }else if(tag == LINKTYPE_SATTOGROUND){
-        std::string srcMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE)) + std::string(".mobility"),
-                destMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE)) + std::string(".mobility");
-        SatMobility *srcMobi = dynamic_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
-        GroundNodeMobility *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-        tmp.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 0);
-        tmp.state = 1;
+    // --------------------------------------- create link --------------------------------------------------------------
+    if(tag == LINKTYPE_SATTOGROUND){
+        auto *srcMobi = dynamic_cast<SatMobility*>(srcModule->getSubmodule("mobility"));
+        auto *destMobi = dynamic_cast<GroundNodeMobility*>(destModule->getSubmodule("mobility"));
+        satToGroundLink.srcMod = srcModule; // set the srcModule of the link
+        satToGroundLink.destMod = destModule; // set the destModule of the link
+        satToGroundLink.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 0);
+        satToGroundLink.state = 1; // the initialize status of a link is up
+        satToGroundLink.channelType = channelType; // set the channel type
+        satToGroundLink.gatePair = getGatePair(node); // get the gate pair of the link
+    } else {
+        throw cRuntimeError("other not supported now"); // NOLINT
     }
-    EV << "Successfully add the link " << node->getTagName()<< "between " << srcMod->getFullPath() << " and " << destMod->getFullPath() <<endl;
-    linkList.push_back(tmp);
-    if(satToOthersLinkMap.find(srcMod) == satToOthersLinkMap.end()){
-        satToOthersLinkMap[srcMod] = {(int)linkList.size()-1};
+    linkList.push_back(satToGroundLink);
+    if(satToGroundStationsLinkMap.find(srcModule) == satToGroundStationsLinkMap.end()){
+        satToGroundStationsLinkMap[srcModule] = {(int)linkList.size() - 1};
     }else{
-        satToOthersLinkMap[srcMod].push_back((int)linkList.size()-1);
+        satToGroundStationsLinkMap[srcModule].push_back((int)linkList.size() - 1);
     }
-}
-
-void ChannelController::disconnect(Link &link){
-    link.gatePair.first->disconnect();
-    link.gatePair.second->disconnect();
-}
-
-void ChannelController::createConnection(Link &link)
-{
-    double latitude = 0;
-    if(link.gatePair.first->isConnected() || link.gatePair.second->isConnected()) {
-        std::cout<<"Exist connection between "<< link.srcMod->getFullPath() << " and "<< link.destMod->getFullPath() << endl;
-        return;
-    }
-    // connect from source to dest
-    // ----------------------------------------------------------------------------------------------------------------------------------------------
-    cGate *srcGate = link.srcMod->gateHalf(link.gatePair.first->getBaseName(), cGate::OUTPUT, link.gatePair.first->getIndex());
-    cGate *destGate = link.destMod->gateHalf(link.gatePair.second->getBaseName(), cGate::INPUT, link.gatePair.second->getIndex());
-    cChannel *channel = link.channelType->create("channel");
-    srcGate->connectTo(destGate, channel);
-    // ----------------------------------------------------------------------------------------------------------------------------------------------
-
-    // connect from dest to source
-    // ----------------------------------------------------------------------------------------------------------------------------------------------
-    destGate = link.srcMod->gateHalf(link.gatePair.first->getBaseName(), cGate::INPUT, link.gatePair.first->getIndex());
-    srcGate = link.destMod->gateHalf(link.gatePair.second->getBaseName(), cGate::OUTPUT, link.gatePair.second->getIndex());
-    channel = link.channelType->create("channel");
-    srcGate->connectTo(destGate, channel);
-    // ----------------------------------------------------------------------------------------------------------------------------------------------
 }
 
 void ChannelController::addSatToSatLink(const cXMLElement *node){
-    cModule *srcMod = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE));
-    cModule *destMod = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE));
-    if (srcMod->getParentModule() != destMod->getParentModule())
-        throw cRuntimeError("'src-module' and 'dest-module' must have the same parent module");
-    const char *channelTypeName = node->getAttribute(ATTR_CHANNELTYPE);
+    /**
+     * @brief addSatToSatLink 添加从卫星到卫星的链路
+     * @param node xml 标签，代表一条链路
+     */
+    // -------------------------create link ------------------------------------
+    Link satToSatLink;
+    std::string srcModuleName = node->getAttribute(ATTR_SRCMODULE.c_str());
+    std::string destModuleName = node->getAttribute(ATTR_DESTMODULE.c_str());
+    cModule *srcModule = getModuleByPath(srcModuleName.c_str());
+    cModule *destModule = getModuleByPath(destModuleName.c_str());
+    if (srcModule->getParentModule() != destModule->getParentModule())
+        throw cRuntimeError("'src-module' and 'dest-module' must have the same parent module the osgearth"); // NOLINT
+    const char *channelTypeName = node->getAttribute(ATTR_CHANNELTYPE.c_str());
     cChannelType *channelType = channelTypeName ? cChannelType::get(channelTypeName) : nullptr;
+    // -------------------------create link ------------------------------------
 
-    // create tmp link
-    // ------------------------------------------------------------------
-    Link tmp;
-    tmp.state = 1;
-    tmp.srcMod = srcMod;
-    tmp.destMod = destMod;
-    tmp.channelType = channelType;
-    tmp.gatePair = getConnection(node);
-    tmp.linkInfo = std::string(node->getAttribute(ATTR_LINKINFO));
-    // ------------------------------------------------------------------
+    // -------------------------same procedure for inter and intra orbit --------------------
+    satToSatLink.state = 1;
+    satToSatLink.srcMod = srcModule;
+    satToSatLink.destMod = destModule;
+    satToSatLink.channelType = channelType;
+    satToSatLink.gatePair = getGatePair(node);
+    satToSatLink.linkInfo = std::string(node->getAttribute(ATTR_LINKINFO.c_str()));
+    // -------------------------same procedure for inter and intra orbit --------------------
 
     // if the link is an inter-orbit link
     // ------------------------------------------------------------------
-    if(tmp.linkInfo == "inter-orbit"){
-        // get src_module name in the xml file
-        std::string srcMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE)) + std::string(".mobility");
-        // get dest_module name in the xml file
-        std::string destMobiName = std::string(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE)) + std::string(".mobility");
+    if(satToSatLink.linkInfo == "inter-orbit"){
         // get src_module mobility
-        auto *srcMobi = dynamic_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str())),*destMobi = dynamic_cast<SatMobility*>(getModuleByPath(destMobiName.c_str()));
+        auto *srcMobi = dynamic_cast<SatMobility*>(srcModule->getSubmodule("mobility"));
+        auto *destMobi = dynamic_cast<SatMobility*>(destModule->getSubmodule("mobility"));
         // add line of sight between src_module and dest_module
-        tmp.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 1);
-        // downMessage and upMessage are used to simulate the link fault and recovery
-        std::string downMessageInfo = std::string("down" + std::to_string(int(linkList.size())));
-        tmp.downMessage = new cMessage(downMessageInfo.c_str());
-        this->downMessageToLinkMap[tmp.downMessage] = (int)linkList.size();
-        std::string upMessageInfo = std::string("up" + std::to_string(int(linkList.size())));
-        tmp.upMessage = new cMessage(upMessageInfo.c_str());
-        this->upMessageToLinkMap[tmp.upMessage] = (int)linkList.size();
+        satToSatLink.los = addLineOfSight(srcMobi->getLocatorNode(), destMobi->getLocatorNode(), 1);
+        // 如果链路故障率大于0
         if(this->faultRate > 0){
-            // schedule the first fault message
-            this->scheduleAt(1 + exponential(this->faultInterval),tmp.downMessage);
+            // downMessage and upMessage are used to simulate the link fault and recovery
+            generateDownMessageForLink(satToSatLink);
         }
     }else{
-        tmp.los = nullptr;
-        tmp.downMessage = nullptr;
-        tmp.upMessage = nullptr;
+        satToSatLink.los = nullptr;
+        satToSatLink.downMessage = nullptr;
+        satToSatLink.upMessage = nullptr;
     }
     // ------------------------------------------------------------------
-    linkList.push_back(tmp);
-    if(satStateMap.find(srcMod) == satStateMap.end())
-        satStateMap[srcMod] = true;
-    if(satStateMap.find(destMod) == satStateMap.end())
-        satStateMap[destMod] = true;
-    if(satLinkMap.find(srcMod) == satLinkMap.end()){
-        satLinkMap[srcMod] = {(int)linkList.size()-1};
+    linkList.push_back(satToSatLink);
+
+
+    // 全部置为没有进入极区的情况
+    if(notEnterPolarMap.find(srcModule) == notEnterPolarMap.end())
+        notEnterPolarMap[srcModule] = true;
+    if(notEnterPolarMap.find(destModule) == notEnterPolarMap.end())
+        notEnterPolarMap[destModule] = true;
+
+    // 添加到 satLinkMap 中
+    if(satLinkMap.find(srcModule) == satLinkMap.end()){
+        satLinkMap[srcModule] = {(int)linkList.size()-1};
     }else{
-        satLinkMap[srcMod].push_back((int)linkList.size()-1);
+        satLinkMap[srcModule].push_back((int)linkList.size()-1);
     }
-    if(satLinkMap.find(destMod) == satLinkMap.end()){
-        satLinkMap[destMod] = {(int)linkList.size()-1};
+    if(satLinkMap.find(destModule) == satLinkMap.end()){
+        satLinkMap[destModule] = {(int)linkList.size()-1};
     }else{
-        satLinkMap[destMod].push_back((int)linkList.size()-1);
+        satLinkMap[destModule].push_back((int)linkList.size()-1);
     }
 }
+
 void ChannelController::loadXMLConfig(){
-    cXMLElement *script = par("config");
-    for (cXMLElement *node = script->getFirstChild(); node; node = node->getNextSibling()) {
-        std::string tag = node->getTagName();
-        if(tag == LINKTYPE_SATTOSAT)
-            addSatToSatLink(node);
-        else if(tag == LINKTYPE_SATTOGROUND || tag == LINKTYPE_SATTOHIGH)
-            addSatToOtherLink(node);
-        else addOtherToOtherLink(node);
+    /**
+     * @brief loadXMLConfig 加载 xml 配置文件
+     */
+    // get xml doc
+    cXMLElement *script = par(PAR_CHANNEL_XML_CONFIG.c_str());
+    // 进行子标签的遍历
+    for (cXMLElement *node = script->getFirstChild(); node!=nullptr; node = node->getNextSibling()) {
+        std::string tag = node->getTagName(); // 获取标签名
+        if(tag == LINKTYPE_SATTOSAT) // 如果是卫星到卫星的链路
+            addSatToSatLink(node); // 添加卫星到卫星的链路
+        else if(tag == LINKTYPE_SATTOGROUND) // 如果是卫星到地面站的链路
+            addSatToOtherLink(node); // 添加卫星到地面站的链路
+        else {
+            throw cRuntimeError("other not supported now"); // NOLINT
+        }
     }
 
 }
 
 osgEarth::Util::LinearLineOfSightNode *ChannelController::addLineOfSight(osg::Node *a, osg::Node *b, int type)
 {
+    /**
+     * @brief addLineOfSight 添加一条绘制的链路
+     */
     auto mapNode = osgEarth::MapNode::findMapNode(scene);
     auto *los = new osgEarth::Util::LinearLineOfSightNode(mapNode);
 
-    // not drawing the line of sight nodes' lines
     los->setGoodColor(osg::Vec4f(0, 0, 0, 0));
     los->setBadColor(osg::Vec4f(0, 0, 0, 0));
 
@@ -360,109 +279,78 @@ osgEarth::Util::LinearLineOfSightNode *ChannelController::addLineOfSight(osg::No
 
 void ChannelController::refreshDisplay() const
 {
-    // los update callbacks are called during update traversal, so do it now
+    /**
+     * @brief refreshDisplay 进行星间链路和星地链路的绘制
+     */
     osgUtil::UpdateVisitor updateVisitor;
     scene->traverse(updateVisitor);
-
-    // update line-of-sight lines (remove all, then add back current ones)
     connections->removeDrawables(0, connections->getNumDrawables());
-
     int numSatToSat = 0;
     int numSatToGround = 0;
-    int numSatToHigh = 0;
-    int numGroundToHigh = 0;
-
     for (const auto &link : linkList) {
-        if(link.state == 0 || link.los == nullptr) continue;
-            auto start = link.los->getStartWorld();
-            auto end = link.los->getEndWorld();
+        // 如果没有连接，那么就不进行绘制
+        if(link.state == 0 || link.los == nullptr){
+            continue;
+        }
 
-            int type;
-            link.los->getUserValue("type", type);
-            switch (type) {
-                case 0:{
-                    ++numSatToGround;
-                    if (!satToGroundColor.empty())
-                        connections->addDrawable(createLineBetweenPoints(start, end, satToGroundWidth, osgEarth::Color(satToGroundColor)));
-                    break;
-                }
-                case 1:{
-                    cModule* sourceModule = link.srcMod;
-                    auto* srcSatMobility = dynamic_cast<SatMobility*>(sourceModule->getSubmodule("mobility"));
-                    cModule* destModule = link.destMod;
-                    auto* destSatMobility = dynamic_cast<SatMobility*>(destModule->getSubmodule("mobility"));
+        // 获取链路的起始点和终止点
+        auto start = link.los->getStartWorld();
+        auto end = link.los->getEndWorld();
 
-                    std::pair<double, double> sourceLatAndLong = srcSatMobility->getLatitudeAndLongitude();
-                    double srcLatitude = sourceLatAndLong.first;
-                    double srcLongitude = sourceLatAndLong.second;
+        // 获取链路的类型
+        int type;
+        link.los->getUserValue("type", type);
 
-                    std::pair<double, double> destLatAndLong = destSatMobility->getLatitudeAndLongitude();
-                    double destLatitude = destLatAndLong.first;
-                    double destLongitude = destLatAndLong.second;
-
-                    int situation = 0;
-                    if(srcLatitude > destLatitude)
-                    {
-                        situation = 1;
-                    }
-
-                    ++numSatToSat;
-                    if (!satToSatColor.empty())
-                    {
-                        if(situation == 1){
-                            connections->addDrawable(createLineBetweenPoints(start, end, satToSatWidth, osgEarth::Color(satToSatColor)));
-                        } else {
-                            connections->addDrawable(createLineBetweenPoints(start, end, satToSatWidth, osgEarth::Color(satToSatAnotherColor)));
-                        }
-                    }
-                    break;
-                }
-                case 2:{
-                    ++numSatToHigh;
-                    if (!satToHighColor.empty())
-                        connections->addDrawable(createLineBetweenPoints(start, end, satToHighWidth, osgEarth::Color(satToHighColor)));
-                    break;
-                }
-                case 3:{
-                    ++numGroundToHigh;
-                    if (!groundToHighColor.empty())
-                        connections->addDrawable(createLineBetweenPoints(start, end, groundToHighWidth, osgEarth::Color(groundToHighColor)));
-                    break;
-                }
+        switch (type) {
+            case 0:{ // 代表是星地链路
+                // 添加星地链路
+                ++numSatToGround;
+                if (!satToGroundColor.empty())
+                    connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end, satToGroundWidth, osgEarth::Color(satToGroundColor)));
+                break;
             }
+            case 1:{  // 代表是星间链路
+                cModule* sourceModule = link.srcMod;
+                auto* srcSatMobility = dynamic_cast<SatMobility*>(sourceModule->getSubmodule("mobility"));
+                cModule* destModule = link.destMod;
+                auto* destSatMobility = dynamic_cast<SatMobility*>(destModule->getSubmodule("mobility"));
+
+                std::pair<double, double> sourceLatAndLong = srcSatMobility->getLatitudeAndLongitude();
+                double srcLatitude = sourceLatAndLong.first;
+                double srcLongitude = sourceLatAndLong.second;
+
+                std::pair<double, double> destLatAndLong = destSatMobility->getLatitudeAndLongitude();
+                double destLatitude = destLatAndLong.first;
+                double destLongitude = destLatAndLong.second;
+
+                int situation = 0;
+                if(srcLatitude > destLatitude)
+                {
+                    situation = 1;
+                }
+
+                ++numSatToSat;
+                if (!satToSatColor.empty())
+                {
+                    if(situation == 1){
+                        connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end, satToSatWidth, osgEarth::Color(satToSatColor)));
+                    } else {
+                        connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end, satToSatWidth, osgEarth::Color(satToSatAnotherColor)));
+                    }
+                }
+                break;
+            }
+            default:{
+                break;
+            }
+        }
     }
-
-//    EV << "Active connections: " << numSatToSat << " sat-to-sat and " << numSatToGround << " sat-to-ground "<< numSatToHigh <<" sat-to-high\n";
-}
-
-osg::ref_ptr<osg::Drawable> ChannelController::createLineBetweenPoints(osg::Vec3 start, osg::Vec3 end, float width, osg::Vec4 color)
-{
-    osg::ref_ptr<osg::Geometry> orbitGeom = new osg::Geometry;
-    osg::ref_ptr<osg::DrawArrays> drawArrayLines = new  osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP);
-    osg::ref_ptr<osg::Vec3Array> vertexData = new osg::Vec3Array;
-
-    orbitGeom->addPrimitiveSet(drawArrayLines);
-    auto stateSet = orbitGeom->getOrCreateStateSet();
-    stateSet->setAttributeAndModes(new osg::LineWidth(width), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-    stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-    auto depth = new osg::Depth;
-    depth->setWriteMask(false);
-    stateSet->setAttributeAndModes(depth, osg::StateAttribute::ON);
-
-    vertexData->push_back(start);
-    vertexData->push_back(end);
-
-    orbitGeom->setVertexArray(vertexData);
-    drawArrayLines->setFirst(0);
-    drawArrayLines->setCount(vertexData->size());
-
-    osg::ref_ptr<osg::Vec4Array> colorData = new osg::Vec4Array;
-    colorData->push_back(osgEarth::Color(color));
-    orbitGeom->setColorArray(colorData, osg::Array::BIND_OVERALL);
-    return orbitGeom;
 }
 
 bool ChannelController::judgeLinkSrcOrDestHasApps(Link &link) {
+    /**
+     * @brief 判断链路的源模块或者目的模块是否有应用,如果有的话，那么就不进行链路的断开
+     */
     cModule* srcModule = link.gatePair.first->getOwnerModule();
     cModule* destModule = link.gatePair.second->getOwnerModule();
     bool srcHasIpApp = (srcModule->par("numApps").intValue() > 0);
@@ -487,6 +375,9 @@ bool ChannelController::judgeLinkSrcOrDestHasApps(Link &link) {
 }
 
 double ChannelController::calculate_link_failure() {
+    /**
+     * @brief 计算链路的故障率
+     */
     for(const auto& link : this->linkList){
         if(link.state == 0 && link.linkInfo == "inter-orbit"){
             failure_links_count += 1;
@@ -501,153 +392,240 @@ double ChannelController::calculate_link_failure() {
 
 void ChannelController::handleMessage(cMessage *msg)
 {
-    if(msg == timeOutEvent){
-        for(const auto &satList:satLinkMap){
-            std::string satStr = satList.first->getFullPath();
-            satStr += ".mobility";
-            auto *sMobi =  check_and_cast<SatMobility *>(satList.first->getModuleByPath(satStr.c_str()));
-            sMobi->updatePosition();
-        }
-        scheduleAt(simTime()+timeout, timeOutEvent);
-        if(timeoutEventCount % 500 == 0){
-            std::cout << "link failure rate: " << this->calculate_link_failure() << std::endl;
-        }
-        timeoutEventCount += 1;
-    }
-    // if the message is the down link message
-    else if(this->downMessageToLinkMap.find(msg) != downMessageToLinkMap.end()){
-        // get the link index
-        int link_index = downMessageToLinkMap[msg];
-        // get the corresponding link
-        auto& link = linkList[link_index];
-        // if we need to shutdown the link
-        double now_probability = uniform(0, 1.0, rngNumber);
-        // get the src module
-        std::string srcModuleFullPath = link.gatePair.first->getOwnerModule()->getFullPath();
-
-        if(now_probability < (faultRate)){
-            if(link.gatePair.first->isConnected() && link.gatePair.second->isConnected()){
-                    if(!this->judgeLinkSrcOrDestHasApps(link)){
-                        this->disconnect(link);
-                        link.state = 0;
-                        scheduleAt(simTime() + 5, link.upMessage);
-                    } else {
-                        this->scheduleAt(simTime() + exponential(faultInterval), link.downMessage);
-                    }
-            } else {
-                this->scheduleAt(simTime() + exponential(faultInterval), link.downMessage);
-            }
-        } else {
-            scheduleAt(simTime()+ exponential(faultInterval), link.downMessage);
-        }
-    }
-    // if the message is the recover link message
-    else if(this->upMessageToLinkMap.find(msg) != this->upMessageToLinkMap.end()){
-        // get the link index
-        int link_index = upMessageToLinkMap[msg];
-        // get the corresponding link
-        auto& link = linkList[link_index];
-        // we need to recovery the link
-        if(link.state == 0 && !link.gatePair.first->isConnected() && !link.gatePair.second->isConnected()){
-            createConnection(link);
-            link.state = 1;
-        }
-        this->scheduleAt(simTime() + exponential(faultInterval), link.downMessage);
+    /**
+     * @brief 处理各种各样的自消息
+     */
+    std::string msgname = msg->getName();
+    if(msg == updatePositionEvent){
+        handleUpdatePositionEvent(msg);
+    } else if(msg == calculateLinkFailureEvent){
+        handleLinkFailureCalculateEvent(msg);
+    } else if(msgname.find("down") != std::string::npos) {
+        handleLinkDownEvent(msg);
+    } else if(msgname.find("up") != std::string::npos){
+        handleLinkUpEvent(msg);
     }
 }
 
+void ChannelController::handleLinkUpEvent(omnetpp::cMessage *msg) {
+    int link_index = upMessageToLinkMap[msg]; // 获取消息对应的链路索引
+    auto& link = linkList[link_index]; // 获取相应的链路
+    bool firstGateIsConnected = link.gatePair.first->isConnected(); // 判断第一个端口是否连接
+    bool secondGateIsConnected = link.gatePair.second->isConnected(); // 判断第二个端口是否连接
+    if(link.state == 0 && !firstGateIsConnected && !secondGateIsConnected){ // 如果链路处于断开状态，并且两个端口都没有连接
+        createConnection(link); // 进行连接的创建
+        link.state = 1; // 将链路的状态置为连接状态
+    }
+    this->scheduleAt(simTime() + exponential(faultInterval), link.downMessage); // 重新计划下一次的链路断开事件
+}
+
+void ChannelController::handleLinkDownEvent(omnetpp::cMessage *msg) {
+    int link_index = downMessageToLinkMap[msg]; // 获取消息对应的链路索引
+    auto& link = linkList[link_index]; // 获取相应的链路
+    double now_probability = uniform(0, 1.0, rngNumber); // 生成一个当前的0~1之间的随机数
+    std::string srcModuleFullPath = link.gatePair.first->getOwnerModule()->getFullPath(); // 获取源模块的全路径
+    if(faultRate > now_probability){ // 故障率大于当前的随机数,那么就准备进行链路的断开
+        // 首先我们判断链路是否处于连接的状态
+        bool firstGateIsConnected = link.gatePair.first->isConnected();
+        bool secondGateIsConnected = link.gatePair.second->isConnected();
+        if(firstGateIsConnected && secondGateIsConnected){
+            if(!this->judgeLinkSrcOrDestHasApps(link)){ // 进行链路的断开
+                ChannelController::disconnect(link);
+                link.state = 0;
+                scheduleAt(simTime() + recoverInterval, link.upMessage);
+            } else { // 选择另一条链路
+                this->scheduleAt(simTime() + exponential(faultInterval), link.downMessage);
+            }
+        } else {// 如果链路本身就不处于连接的状态，那么我们隔一段时间再来进行一次检查
+            this->scheduleAt(simTime() + exponential(faultInterval), link.downMessage);
+        }
+    } else {
+        // 我们隔一段时间再来进行一次检查
+        scheduleAt(simTime()+ exponential(faultInterval), link.downMessage);
+    }
+}
+
+void ChannelController::generateDownMessageForLink(Link& satToSatLink){
+    // downMessage and upMessage are used to simulate the link fault and recovery
+    std::string downMessageInfo = std::string("down") + std::to_string(int(linkList.size()));
+    std::string upMessageInfo = std::string("up") + std::to_string(int(linkList.size()));
+    satToSatLink.downMessage = new cMessage(downMessageInfo.c_str());
+    satToSatLink.upMessage = new cMessage(upMessageInfo.c_str());
+    this->downMessageToLinkMap[satToSatLink.downMessage] = (int)linkList.size();
+    this->upMessageToLinkMap[satToSatLink.upMessage] = (int)linkList.size();
+    // schedule the first fault test message
+    this->scheduleAt(1 + exponential(this->faultInterval),satToSatLink.downMessage);
+}
+
+void ChannelController::initializeAllEvents(){
+    calculateLinkFailureInterval = this->par(PAR_FAULT_INTERVAL.c_str()).doubleValue();
+    calculateLinkFailureEvent = new cMessage(MSG_CALCULATE_LINK_FAILURE.c_str());
+    scheduleAt(simTime() + calculateLinkFailureInterval, calculateLinkFailureEvent);
+
+    updatePositionInterval = this->par(PAR_UPDATE_POSITION_INTERVAL.c_str()).doubleValue();
+    updatePositionEvent = new cMessage(MSG_UPDATE_POSITION.c_str());
+    scheduleAt(simTime() + updatePositionInterval, updatePositionEvent);
+}
+
+void ChannelController::handleLinkFailureCalculateEvent(omnetpp::cMessage *msg) {
+    double calculated_link_failure_rate = this->calculate_link_failure();
+    std::cout << "link failure rate: " << calculated_link_failure_rate << std::endl;
+}
+
+void ChannelController::handleUpdatePositionEvent(omnetpp::cMessage *msg) {
+    /**
+     * @brief 处理位置更新的事件
+     * @param msg 代表的是一个超时事件
+     */
+    // 进行 [卫星 ---> 卫星的星间链路] 的遍历
+    for(const auto &item:satLinkMap){
+        // 获取第一个元素模块
+        cModule* satellite = item.first;
+        // 获取这个卫星模块的移动模块
+        auto *sMobi =  check_and_cast<SatMobility *>(satellite->getSubmodule("mobility"));
+        // 进行位置的更新
+        sMobi->updatePosition();
+    }
+    // 计划着下一次的超时事件
+    scheduleAt(simTime()+updatePositionInterval, updatePositionEvent);
+}
+
 void ChannelController::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details){
-    // TODO
-    // judge the signal type, polar_constellation type?
+    /**
+     * @source 信号的发送方
+     * @signalID 信号的ID
+     * @obj 信号带的数据
+     * @details 信号的详细信息
+     */
+    // 判断信号的类型
     if(signalID == leavePolarAreaSignal){
-        //when a satellite leave the polar area, it will be ready to establish inter-orbit links, but whether establishing or not depends on the state of another node.
+        // 当一个卫星要离开极地区域的时候，它将准备好进行跨轨道星间链路的建立
         auto *src = check_and_cast<cModule * >(obj);
-        satStateMap[src] = true;
+        // 进行这个状态表的更新
+        notEnterPolarMap[src] = true;
+        // 遍历这个卫星的所有的link
         for(const auto &linkIndex : satLinkMap[src]){
-            if(satStateMap[linkList[linkIndex].srcMod] && satStateMap[linkList[linkIndex].destMod] && linkList[linkIndex].linkInfo == "inter-orbit"){
+            // 只有是跨轨道星间链路，并且两个卫星都出了极区域才能够更新 link 的 state
+            bool srcNotEnterPolar = notEnterPolarMap[linkList[linkIndex].srcMod];
+            bool destNotEnterPolar = notEnterPolarMap[linkList[linkIndex].destMod];
+            bool isInterOrbitLink = linkList[linkIndex].linkInfo == "inter-orbit";
+            if(srcNotEnterPolar && destNotEnterPolar && isInterOrbitLink){
+                // 进行 link 状态的更新
                 linkList[linkIndex].state = 1;
+                // 进行连接的创建
                 createConnection(linkList[linkIndex]);
             }
         }
+        refreshDisplay();
     }else if(signalID == enterPolarAreaSignal){
-        //when the satellite enters the polar area, it will shut down the inter-orbit links immediately
-        cModule *src = check_and_cast<cModule * >(obj);
-        double latitude = 0;
-        satStateMap[src] = false;
+        // 当一个卫星要进入极区的时候，他将准备好进行跨轨道星间链路的断开
+        auto *src = check_and_cast<cModule * >(obj);
+        // 首先将这颗卫星的状态进行更新 - 说明这颗卫星进入了极区
+        notEnterPolarMap[src] = false;
+        // 进行所有的链路的遍历
         for(const auto &linkIndex : satLinkMap[src]){
-            if(linkList[linkIndex].linkInfo != "inter-orbit") continue;
+            // 判断是否是跨轨道星间链路
+            bool isInterOrbitLink = linkList[linkIndex].linkInfo == "inter-orbit";
+            if(!isInterOrbitLink){
+                continue;
+            }
+            // 设置链路的状态为0
             linkList[linkIndex].state = 0;
+            // 进行链路的关闭
             disconnect(linkList[linkIndex]);
         }
         refreshDisplay();
     }else if(signalID == checkSatToGroundSignal){
-        cModule *src = check_and_cast<cModule *>(obj);
+        // 如果是check星地链路
+        auto *src = check_and_cast<cModule *>(obj);
         checkSatToOtherLink(src);
+        refreshDisplay();
     }
-
 }
 
-cGate *ChannelController::findMandatorySingleGateTowards(cModule *srcModule, cModule *destModule)
-{
-    cGate *resultGate = nullptr;
-    for (cModule::GateIterator it(srcModule); !it.end(); ++it) {
-        cGate *gate = *it;
-        if (gate->getType() == cGate::OUTPUT && gate->getNextGate() != nullptr && gate->getNextGate()->getOwnerModule() == destModule) {
-            if (resultGate)
-                throw cRuntimeError("Ambiguous gate: there is more than one connection between the source and destination modules"); // NOLINT
-            resultGate = gate;
-        }
-    }
-    if (!resultGate)
-        throw cRuntimeError("No such gate: there is no connection between the source and destination modules"); // NOLINT
-    return resultGate;
+void ChannelController::disconnect(Link &link){
+    /**
+     * @param link 代表的是一个 link
+     */
+    link.gatePair.first->disconnect();
+    link.gatePair.second->disconnect();
 }
 
-GatePair ChannelController::getConnection(const cXMLElement *node)
+void ChannelController::createConnection(Link &link)
 {
-    if (node->getAttribute(ATTR_SRCGATE)) {
-        cModule *srcModule = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE));
-        const char *srcGateSpec = xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCGATE);
-        std::string name;
-        int index;
-        parseIndexedName(srcGateSpec, name, index);
-        if (srcModule->gateType(name.c_str()) == cGate::OUTPUT) {
-            return GatePair(srcModule->gate(name.c_str(), index), nullptr); // throws if not found // NOLINT
-        }
-        else if (srcModule->gateType(name.c_str()) == cGate::INOUT) {
+    /**
+     * @param link 代表的是一个 link
+     */
+    bool theConnectivityOfFirstGate = false;
+    bool theConnectivityOfSecondGate = false;
+    theConnectivityOfFirstGate = link.gatePair.first->isConnected();
+    theConnectivityOfSecondGate = link.gatePair.second->isConnected();
+    std::string firstGateBaseName = link.gatePair.first->getBaseName();
+    std::string secondGateBaseName = link.gatePair.second->getBaseName();
+    int firstGateIndex = link.gatePair.first->getIndex();
+    int secondGateIndex = link.gatePair.second->getIndex();
+    if(theConnectivityOfFirstGate || theConnectivityOfSecondGate) {
+        std::stringstream ss;
+        ss << "Exisiting Connection between" << link.srcMod->getFullPath() << " and "<< link.destMod->getFullPath() << endl;
+        throw cRuntimeError("%s", ss.str().c_str()); // NOLINT
+    }
+    // connect from source to dest
+    // ----------------------------------------------------------------------------------------------------------------------------------------------
+    cGate *srcGateHalf = link.srcMod->gateHalf(firstGateBaseName.c_str(), cGate::OUTPUT, firstGateIndex);
+    cGate *destGateHalf = link.destMod->gateHalf(secondGateBaseName.c_str(), cGate::INPUT, secondGateIndex);
+    cChannel *channel = link.channelType->create("channel");
+    srcGateHalf->connectTo(destGateHalf, channel);
+    // ----------------------------------------------------------------------------------------------------------------------------------------------
+
+    // connect from dest to source
+    // ----------------------------------------------------------------------------------------------------------------------------------------------
+    std::swap(srcGateHalf, destGateHalf);
+    srcGateHalf->connectTo(destGateHalf, channel);
+    // ----------------------------------------------------------------------------------------------------------------------------------------------
+}
+
+GatePair ChannelController::getGatePair(const cXMLElement *node)
+{
+    /**
+     * @param node 代表的是 channel.xml 之中的一个 link
+     */
+    // 获取链路标签的 src 属性 - 如果不为空
+    const char* sourceGatePath = node->getAttribute(ATTR_SRCGATE.c_str()); // ethg[0]
+    if (strcmp(sourceGatePath, "") != 0) {
+
+        // ------ 那么我们通过 getModuleByPath 进行 gate 的获取 -----
+        cModule *srcModule = getModuleByPath(sourceGatePath);
+        // ------ 那么我们通过 getModuleByPath 进行 gate 的获取 -----
+
+        // -------------------------------进行门的名和索引的获取---------------------------------------
+        std::pair<std::string, int> temp_pair = MultilayerTools::getNameAndIndex(sourceGatePath);
+        std::string name = temp_pair.first;
+        int index = temp_pair.second;
+        // -------------------------------进行门的名和索引的获取---------------------------------------
+
+        // -------------------------------检查src gate的类型---------------------------------------
+        cGate::Type sourceGateType = srcModule->gateType(name.c_str());
+        // 仅仅可能是输入输出门
+        if (sourceGateType == cGate::INOUT) {
+            // get the name of output half of the gate
             cGate *outputHalf = srcModule->gateHalf(name.c_str(), cGate::OUTPUT, index);
+            // get the name of input half of the gate
             cGate *inputHalf = srcModule->gateHalf(name.c_str(), cGate::INPUT, index);
-            if (outputHalf->getNextGate() == nullptr || inputHalf->getPreviousGate() == nullptr)
+            // output half will connect to the other side of the link
+            if (outputHalf->getNextGate() == nullptr || inputHalf->getPreviousGate() == nullptr){
                 throw cRuntimeError("The specified gate (or the input or output half of it) is not connected"); // NOLINT
-            if (outputHalf->getNextGate()->getOwnerModule() != inputHalf->getPreviousGate()->getOwnerModule()) // NOLINT
-                throw cRuntimeError("The specified gate (or the input or output half of it) is connected to a node on another level");
+            }
+            // 假设卫星1和卫星2连接，输出门的下一个门是卫星2的输入门，输入门的前一个门是卫星2的输出门
+            if (outputHalf->getNextGate()->getOwnerModule() != inputHalf->getPreviousGate()->getOwnerModule()){ // NOLINT
+                throw cRuntimeError("The specified gate (or the input or output half of it) is connected to a node on another level"); // NOLINT
+            }
             return GatePair(outputHalf, inputHalf->getPreviousGate()); // NOLINT
         }
         else {
-            throw cRuntimeError("'src-gate' must be an inout or output gate"); // NOLINT
+            throw cRuntimeError("'src-gate' must be an input and output gate"); // NOLINT
         }
-    }
-    else if (node->getAttribute(ATTR_DESTMODULE)) {
-        cModule *srcModule = getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_SRCMODULE));
-        cModule *destModule =getModuleByPath(xmlutils::getMandatoryFilledAttribute(*node, ATTR_DESTMODULE));
-        if (srcModule->getParentModule() != destModule->getParentModule())
-            throw cRuntimeError("Source and destination modules must be under the same parent"); // NOLINT
-        cGate *srcGate = findMandatorySingleGateTowards(srcModule, destModule);
-        bool bidir = strlen(srcGate->getNameSuffix()) > 0; //TODO use =srcGate->isGateHalf();
-        if (!bidir) {
-            return GatePair(srcGate, nullptr); // NOLINT
-        }
-        else {
-            cGate *otherHalf = srcModule->gateHalf(srcGate->getBaseName(), cGate::INPUT, srcGate->isVector() ? srcGate->getIndex() : -1); //TODO use =srcGate->getOtherHalf();
-            cGate *otherSrcGate = otherHalf->getPreviousGate();
-            if (otherSrcGate == nullptr)
-                throw cRuntimeError("Broken bidirectional connection: the corresponding input gate is not connected"); // NOLINT
-            if (otherSrcGate->getOwnerModule() != destModule)
-                throw cRuntimeError("Broken bidirectional connection: the input and output gates are connected to two different modules"); // NOLINT
-            return GatePair(srcGate, otherSrcGate); // NOLINT
-        }
-    }
-    else {
+        // -------------------------------检查src gate的类型---------------------------------------
+    } else {
         throw cRuntimeError("Missing attribute: Either 'src-gate' or 'dest-module' must be present"); // NOLINT
     }
 }

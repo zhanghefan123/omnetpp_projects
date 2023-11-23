@@ -43,4 +43,7 @@ simple ChannelController
     int rngNumber = default(1);
     
     xml config = default(xml("<config></config>"));
+
+    double calculatePositionInterval = default(0.01);
+    double calculateLinkFailureInterval = default(10);
 }

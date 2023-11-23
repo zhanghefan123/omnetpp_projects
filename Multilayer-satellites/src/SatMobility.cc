@@ -277,6 +277,7 @@ void SatMobility::checkSatToGroundLink()
 {
     controller->emit(checkSatToGroundSignal,getContainingNode(this));
 }
+
 void SatMobility::checkPolarAreaEntering()
 {
     bool record = false;
@@ -285,17 +286,17 @@ void SatMobility::checkPolarAreaEntering()
     double latitude = getTransformPosition(lastPosition.x, lastPosition.y, lastPosition.z);
     if(latitude >= 66.32 && !isInPolarArea){
         isInPolarArea = true;
-        // controller->emit(enterPolarAreaSignal,getContainingNode(this));
+        controller->emit(enterPolarAreaSignal,getContainingNode(this));
         std::cout<< simTime() << " s, " << getContainingNode(this)->getFullName() << " Enter Polar, latitude; " << latitude << endl;
     }else if(latitude >= 0 && latitude < 66.32 && isInPolarArea){
         isInPolarArea = false;
-        // controller->emit(leavePolarAreaSignal,getContainingNode(this));
+        controller->emit(leavePolarAreaSignal,getContainingNode(this));
     }else if(latitude < 0 && latitude > -66.32 && isInPolarArea){
         isInPolarArea = false;
-        // controller->emit(leavePolarAreaSignal,getContainingNode(this));
+        controller->emit(leavePolarAreaSignal,getContainingNode(this));
     }else if(latitude <= -66.32 && !isInPolarArea){
         isInPolarArea = true;
-        // controller->emit(enterPolarAreaSignal,getContainingNode(this));
+        controller->emit(enterPolarAreaSignal,getContainingNode(this));
     }
 }
 

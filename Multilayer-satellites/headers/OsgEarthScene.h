@@ -11,7 +11,6 @@
 #define __OSGRENDERER_H__
 
 #include <omnetpp.h>
-
 #include <osg/Node>
 #include <osgEarth/MapNode>
 
@@ -29,14 +28,14 @@ class OsgEarthScene : public cSimpleModule
 
   public:
     OsgEarthScene();
-    virtual ~OsgEarthScene();
+    ~OsgEarthScene() override;
 
     static OsgEarthScene *getInstance();
     virtual osg::Node *getScene() { return scene; }
     osg::PositionAttitudeTransform *getRotator(){ return earthRotator;}
   protected:
-    virtual void initialize() override;
-    virtual void refreshDisplay() const override;
+    void initialize() override;
+    void refreshDisplay() const override;
 };
 
 #endif
