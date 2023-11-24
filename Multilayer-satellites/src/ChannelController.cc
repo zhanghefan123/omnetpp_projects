@@ -484,7 +484,7 @@ void ChannelController::handleUpdatePositionEvent(omnetpp::cMessage *msg) {
         // 获取这个卫星模块的移动模块
         auto *sMobi =  check_and_cast<SatMobility *>(satellite->getSubmodule("mobility"));
         // 进行位置的更新
-        sMobi->updatePosition();
+        sMobi->refreshDisplay();
     }
     // 计划着下一次的超时事件
     scheduleAt(simTime()+updatePositionInterval, updatePositionEvent);

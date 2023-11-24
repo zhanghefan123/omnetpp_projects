@@ -6,11 +6,8 @@
 #define DELAYTOLERANTNETWORK_CONSTVARS_H
 #include <string>
 namespace inet{
-    // -------------------- for satellite mobility --------------------
-    const std::string PAR_DISPLAY_SATELLITE_APP = "displaySatelliteApp";
-    const std::string PAR_DISPLAY_COVERAGE = "displayCoverage";
-    // -------------------- for satellite mobility --------------------
 
+    // -------------------------------- for ChannelController ------------------------------
     // -------------------- for link type --------------------
     const std::string LINKTYPE_SATTOSAT = "SatToSat";
     const std::string LINKTYPE_SATTOGROUND = "SatToGround";
@@ -60,6 +57,20 @@ namespace inet{
     // -------------------- xml --------------------
     const std::string PAR_CHANNEL_XML_CONFIG = "config";
     // -------------------- xml --------------------
+    // -------------------------------- for ChannelController ------------------------------
+
+    // -------------------------------- for Satellite Mobility ------------------------------
+    const std::string PAR_MODEL_URL = "modelURL";
+    const std::string PAR_MODEL_SCALE = "modelScale";
+    const std::string PAR_LABEL_COLOR = "labelColor";
+    const std::string PAR_ALTITUDE = "altitude";
+    const std::string PAR_STARTING_PHASE = "startingPhase";
+    const std::string PAR_DISPLAY_SATELLITE_APP = "displaySatelliteApp";
+    const std::string PAR_DISPLAY_COVERAGE = "displayCoverage";
+    const std::string PAR_ORBIT_NORMAL = "orbitNormal";
+    const std::string PAR_ORBIT_COLOR = "orbitColor";
+    const std::string PAR_CONE_COLOR = "coneColor";
+    // -------------------------------- for Satellite Mobility ------------------------------
 
 }
 #endif //DELAYTOLERANTNETWORK_CONSTVARS_H

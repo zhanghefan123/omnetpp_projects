@@ -35,6 +35,28 @@ using namespace inet;
 class ChannelController;
 class SatMobility : public MobilityBase
 {
+  private:
+    // configure parameters
+    std::string modelURL;
+    double modelScale;
+    std::string labelColor;
+    double altitude = 10000; // in km, above the surface
+    double phase; // on the orbit, in radians, unbounded
+    double startingPhase;
+    std::string orbitColor;
+    std::string coneColor;
+    osg::Node* scene;
+
+    void setModelTree();
+    void setOrbitNormal();
+    void setLabelCharacters();
+    void setOrbit();
+    void setCoverage();
+
+
+
+
+
   public:
     // zhf add code
     osgText::Text *label;
@@ -44,10 +66,7 @@ class SatMobility : public MobilityBase
 
   protected:
     // configuration
-    double startingPhase;
-    std::string labelColor;
-    std::string modelURL;
-    double modelScale;
+
 
     // the node containing the osgEarth data
     osg::observer_ptr<osgEarth::MapNode> mapNode = nullptr;
@@ -59,14 +78,10 @@ class SatMobility : public MobilityBase
     const double mu = 398600.4418; // "geocentric gravitational constant" - source: wikipedia, units: km^3 / s^2
     const double earthRadius = 6371; // in km
 
-    double altitude = 10000; // in km, above the surface
-    double phase = 0; // on the orbit, in radians, unbounded
     osg::Vec3d normal = osg::Vec3d(0, 0, 1); // doesn't have to be unit length, just can't be 0
     osg::Vec3d orbitX, orbitY; // the base of the orbit plane, orthogonal, and both are unit length, computed from the normal
     osg::Vec3d pos;
     double Omega;
-    double theta, fai;
-    double horizonDistance;
 
     /** @brief The next simulation time when the mobility module needs to update its internal state.
      *
@@ -74,11 +89,9 @@ class SatMobility : public MobilityBase
      */
     simtime_t lastPositionUpdateTime = -1;
     bool isInPolarArea = false;
-    simtime_t timeout;  // timeout
-    cMessage *timeOutEvent;  // holds pointer to the timeout self-message
 
   public:
-    virtual ~SatMobility();
+    ~SatMobility() override = default;
 
     Coord position;
 
@@ -143,6 +156,7 @@ class SatMobility : public MobilityBase
     /** @brief handleMessage.*/
     void handleMessage(cMessage *msg) override;
 
+public:
     /** @brief Moves the visual representation module's icon to the new position on the screen.*/
     void refreshDisplay() const override;
 };
