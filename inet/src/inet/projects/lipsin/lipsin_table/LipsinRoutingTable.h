@@ -28,7 +28,7 @@ public:
     void printSourceRoutingTable();
     void addWatches();
     void persist();
-    void load();
+    int load();
 protected:
     void initialize(int stage) override;
 };

@@ -13,7 +13,9 @@ namespace inet{
             this->setupTimer();
         } else if (stage == INITSTAGE_APPLICATION_LAYER){
             // second we need to calculate the source routing table with dijkstra algorithm.
-            this->reCalculateRouteByDijkstra();
+            if(lipsinRoutingTable->load() == -1){
+                this->reCalculateRouteByDijkstra();
+            }
             lipsinRoutingTable->persist();
             // recalculate the route by floyd - in order to get the arbitrary two nodes routes.
             // this->reCalculateRouteByFloyd();

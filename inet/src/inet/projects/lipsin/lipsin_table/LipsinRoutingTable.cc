@@ -109,18 +109,22 @@ namespace inet {
         }
         // 构造文件名
         std::string fileName = std::string("storage/lipsin_routing_table_") + this->getParentModule()->getFullName() + ".txt";
-        // 打开文件
-        std::ofstream file;
-        file.open(fileName, std::ios::out | std::ios::app);
-        // 写入文件
-        file.write(ss.str().c_str(), int(ss.str().length()));
-        // 关闭文件
-        file.close();
+        // 判断文件是否存在
+        if(access(fileName.c_str(), 0) == -1){
+            // 打开文件
+            std::ofstream file;
+            file.open(fileName, std::ios::out | std::ios::app);
+            // 写入文件
+            file.write(ss.str().c_str(), int(ss.str().length()));
+            // 关闭文件
+            file.close();
+        }
     }
 
-    void LipsinRoutingTable::load(){
+    int LipsinRoutingTable::load(){
         /**
          * @brief 从文件中加载路由表
+         * @return 返回值,如果为0代表一切正常，如果为-1,代表错误,比如文件不存在
          */
 
         // 获取到LinkInfoTable
@@ -132,7 +136,7 @@ namespace inet {
         // 判断文件是否存在
         if(access(fileName.c_str(), 0) == -1){
             // 文件不存在
-            return;
+            return -1;
         }
         // 打开文件
         std::ifstream file;
@@ -161,5 +165,7 @@ namespace inet {
         }
         // 关闭文件
         file.close();
+        // 正常返回
+        return 0;
     }
 } /* namespace inet */
