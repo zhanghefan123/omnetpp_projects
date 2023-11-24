@@ -107,7 +107,8 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
         std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
         if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
             auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition()),maxDis = srcMobi->getHorizonDistance();
+            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition());
+            maxDis = srcMobi->getHorizonDistance();
             if(dis > maxDis)  connect = false;
         }else{
             throw cRuntimeError("Undefined destMobility!"); // NOLINT

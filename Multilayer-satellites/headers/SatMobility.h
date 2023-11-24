@@ -46,6 +46,7 @@ class SatMobility : public MobilityBase
     std::string orbitColor;
     std::string coneColor;
     osg::Node* scene;
+    double horizonDistance;
 
     void setModelTree();
     void setOrbitNormal();

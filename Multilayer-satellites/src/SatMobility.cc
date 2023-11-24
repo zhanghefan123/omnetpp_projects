@@ -56,6 +56,7 @@ void SatMobility::setModelTree() {
     objectNode->addChild(modelNode); // 添加 modelNode
     auto geode = new osg::Geode();
     geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+    setLabelCharacters();
     geode->addDrawable(label);
     objectNode->addChild(geode);
     geoTransform->addChild(pat);
@@ -73,7 +74,7 @@ void SatMobility::setCoverage() {
             // the angle between the center of the earth and the horizon as seen from the satellite, in radians
             double alpha = std::asin(earthRadius / orbitRadius);
             // the distance of the horizon from the satellite, in meters
-            double horizonDistance = std::sqrt(orbitRadius * orbitRadius - earthRadius * earthRadius) * 1000;
+            horizonDistance = std::sqrt(orbitRadius * orbitRadius - earthRadius * earthRadius) * 1000;
             // double horizonDistance = std::sqrt(orbitRadius * orbitRadius - earthRadius * earthRadius) * 500;
             double coneHeight = std::sin(alpha)*horizonDistance;
             double coneRadius = std::cos(alpha)*horizonDistance;
@@ -215,8 +216,6 @@ void SatMobility::initialize(int stage)
         case 1:{
 
             setModelTree();
-
-            setLabelCharacters();
 
             setOrbit();
 
