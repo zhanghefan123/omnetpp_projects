@@ -9,6 +9,7 @@
 
 #if defined(WITH_OSG) && defined(WITH_OSGEARTH)
 #include <osg/Geometry>
+#include <unistd.h>
 #include <osgEarthUtil/LinearLineOfSight>
 #include <osgUtil/UpdateVisitor>
 #include <osg/LineWidth>
@@ -501,7 +502,7 @@ void ChannelController::receiveSignal(cComponent *source, simsignal_t signalID, 
     // 判断信号的类型
     if(signalID == leavePolarAreaSignal){
         // 当一个卫星要离开极地区域的时候，它将准备好进行跨轨道星间链路的建立
-        auto *src = check_and_cast<cModule * >(obj);
+        auto *src = check_and_cast<cModule * >(obj)->getParentModule();
         // 进行这个状态表的更新
         notEnterPolarMap[src] = true;
         // 遍历这个卫星的所有的link
@@ -520,7 +521,7 @@ void ChannelController::receiveSignal(cComponent *source, simsignal_t signalID, 
         refreshDisplay();
     }else if(signalID == enterPolarAreaSignal){
         // 当一个卫星要进入极区的时候，他将准备好进行跨轨道星间链路的断开
-        auto *src = check_and_cast<cModule * >(obj);
+        auto *src = check_and_cast<cModule * >(obj)->getParentModule();
         // 首先将这颗卫星的状态进行更新 - 说明这颗卫星进入了极区
         notEnterPolarMap[src] = false;
         // 进行所有的链路的遍历
@@ -538,7 +539,7 @@ void ChannelController::receiveSignal(cComponent *source, simsignal_t signalID, 
         refreshDisplay();
     }else if(signalID == checkSatToGroundSignal){
         // 如果是check星地链路
-        auto *src = check_and_cast<cModule *>(obj);
+        auto *src = check_and_cast<cModule *>(obj)->getParentModule();
         checkSatToOtherLink(src);
         refreshDisplay();
     }
@@ -574,14 +575,16 @@ void ChannelController::createConnection(Link &link)
     // ----------------------------------------------------------------------------------------------------------------------------------------------
     cGate *srcGateHalf = link.srcMod->gateHalf(firstGateBaseName.c_str(), cGate::OUTPUT, firstGateIndex);
     cGate *destGateHalf = link.destMod->gateHalf(secondGateBaseName.c_str(), cGate::INPUT, secondGateIndex);
-    cChannel *channel = link.channelType->create("channel");
-    srcGateHalf->connectTo(destGateHalf, channel);
+    cChannel *firstToSecondchannel = link.channelType->create("channel");
+    srcGateHalf->connectTo(destGateHalf, firstToSecondchannel);
     // ----------------------------------------------------------------------------------------------------------------------------------------------
 
     // connect from dest to source
     // ----------------------------------------------------------------------------------------------------------------------------------------------
-    std::swap(srcGateHalf, destGateHalf);
-    srcGateHalf->connectTo(destGateHalf, channel);
+    cChannel *secondToFirstChannel = link.channelType->create("channel");
+    srcGateHalf = link.destMod->gateHalf(secondGateBaseName.c_str(), cGate::OUTPUT, secondGateIndex);
+    destGateHalf = link.srcMod->gateHalf(firstGateBaseName.c_str(), cGate::INPUT, firstGateIndex);
+    srcGateHalf->connectTo(destGateHalf, secondToFirstChannel);
     // ----------------------------------------------------------------------------------------------------------------------------------------------
 }
 

@@ -12,12 +12,12 @@
 // and visualizing the connectivity graph via osgEarth.
 //
 package nedFiles.osgNodes;
-
+import nedFiles.osgNodes.SatMobility;
 simple ChannelController
 {
-    @signal[enterPolarAreaSignal](type=ChannelController);
-    @signal[leavePolarAreaSignal](type=ChannelController);
-    @signal[checkSatToGroundSignal](type=ChannelController);
+    @signal[enterPolarAreaSignal](type=SatMobility);
+    @signal[leavePolarAreaSignal](type=SatMobility);
+    @signal[checkSatToGroundSignal](type=SatMobility);
     @display("i=block/network2");
     string satToSatColor = default("#00FF00BF");
     string satToSatAnotherColor = default("#FF4020DF");
@@ -44,6 +44,6 @@ simple ChannelController
     
     xml config = default(xml("<config></config>"));
 
-    double updatePositionInterval = default(0.01);
+    double updatePositionInterval = default(1);
     double calculateLinkFailureInterval = default(10);
 }
