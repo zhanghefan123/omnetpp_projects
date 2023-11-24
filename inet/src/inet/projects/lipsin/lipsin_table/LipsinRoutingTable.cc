@@ -4,7 +4,9 @@
  *  Created on: Sep 10, 2023
  *      Author: zhf
  */
-
+#include <fstream>
+#include <unistd.h>
+#include "inet/projects/lipsin/lipsin_table/LinkInfoTable.h"
 #include "LipsinRoutingTable.h"
 #include "inet/projects/lipsin/lipsin_operator_reload/LipsinOperatorReload.h"
 #include "inet/projects/lipsin/lipsin_tools/LipsinTools.h"
@@ -85,5 +87,79 @@ namespace inet {
             }
             std::cout << std::endl;
         }
+    }
+
+    void LipsinRoutingTable::persist() {
+        /**
+         * @brief 将路由表持久化到文件之中
+         */
+        // 判断文件夹是否存在
+        if(access("storage", 0) == -1){
+            // 创建文件夹
+            mkdir("storage", 0777);
+        }
+        std::stringstream ss;
+        // 进行所有的链路的遍历
+        for(const auto& item : this->destinationRoutesMap){
+            ss << item.first << ",";
+            for(const auto& linkInfo : item.second){
+                ss << linkInfo->getId() << ",";
+            }
+            ss << std::endl;
+        }
+        // 构造文件名
+        std::string fileName = std::string("storage/lipsin_routing_table_") + this->getParentModule()->getFullName() + ".txt";
+        // 打开文件
+        std::ofstream file;
+        file.open(fileName, std::ios::out | std::ios::app);
+        // 写入文件
+        file.write(ss.str().c_str(), int(ss.str().length()));
+        // 关闭文件
+        file.close();
+    }
+
+    void LipsinRoutingTable::load(){
+        /**
+         * @brief 从文件中加载路由表
+         */
+
+        // 获取到LinkInfoTable
+        auto* linkInfoTable = dynamic_cast<LinkInfoTable*>(this->getParentModule()->getSubmodule("linkInfoTable"));
+        // 获取linkInfoTableById
+        auto linkInfoTableById = linkInfoTable->getLinkInfoTableById();
+        // 构造文件名
+        std::string fileName = std::string("storage/lipsin_routing_table_") + this->getParentModule()->getFullName() + ".txt";
+        // 判断文件是否存在
+        if(access(fileName.c_str(), 0) == -1){
+            // 文件不存在
+            return;
+        }
+        // 打开文件
+        std::ifstream file;
+        // 读取文件
+        file.open(fileName, std::ios::in);
+        // 读取文件内容
+        std::string line;
+        while(std::getline(file, line)){
+            // 将这一行按照 ',' 进行分割
+            std::vector<std::string> lineSplit = LipsinTools::splitString(line, ',');
+            // 链路序列的存储
+            std::vector<LinkInfo*> linkSequence;
+            // 获取目的卫星的 id
+            int destSatelliteId = std::stoi(lineSplit[0]);
+            // 获取路由信息
+            for(int index = 1; index < lineSplit.size(); index++){
+                // 获取链路 id
+                int linkId = std::stoi(lineSplit[index]);
+                // 获取链路信息
+                LinkInfo* linkInfo = linkInfoTableById[linkId];
+                // 将链路信息存储到链路序列中
+                linkSequence.push_back(linkInfo);
+            }
+            // 将链路序列存储到路由表中
+            this->destinationRoutesMap[destSatelliteId] = linkSequence;
+        }
+        // 关闭文件
+        file.close();
     }
 } /* namespace inet */

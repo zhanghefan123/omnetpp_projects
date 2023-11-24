@@ -27,6 +27,8 @@ public:
     std::vector<LinkInfo*> getMulticastRoutesByDestIds(const std::vector<int>& nodeIds);
     void printSourceRoutingTable();
     void addWatches();
+    void persist();
+    void load();
 protected:
     void initialize(int stage) override;
 };

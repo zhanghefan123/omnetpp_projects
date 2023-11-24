@@ -35,6 +35,7 @@ namespace inet{
         void addWatches();
     public:
         // table getter
+        std::map<int, LinkInfo*> getLinkInfoTableById(){return this->linkInfoTableById;}
         std::map<int, std::vector<LinkInfo*>> getNodeLinkTable(){return this->nodeLinkTable;}
         std::map<std::tuple<int,int>,LinkInfo*> getLinkInfoTable(){return this->linkInfoTable;}
 

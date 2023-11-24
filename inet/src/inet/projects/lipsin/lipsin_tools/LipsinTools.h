@@ -26,6 +26,8 @@ public:
     static int getIntAttr(const cXMLElement& ifConfig, const char *name) ;
     static const char * getStrAttr(const cXMLElement& ifConfig, const char *name);
     static IslType getIslType(const cXMLElement& ifconfig, const char* name);
+    static std::vector<std::string> splitString(const std::string& str, char delimiter);
+
 };
 } /* namespace inet */
 
