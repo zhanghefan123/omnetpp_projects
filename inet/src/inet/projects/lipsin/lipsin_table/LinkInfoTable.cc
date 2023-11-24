@@ -15,7 +15,7 @@ namespace inet{
             // second we need to calculate the source routing table with dijkstra algorithm.
             this->reCalculateRouteByDijkstra();
             // recalculate the route by floyd - in order to get the arbitrary two nodes routes.
-            this->reCalculateRouteByFloyd();
+            // this->reCalculateRouteByFloyd();
             // add watches.
             this->addWatches();
         }

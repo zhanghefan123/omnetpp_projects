@@ -21,6 +21,7 @@ private:
 public:
     void updateGlobalRoutingTable(const std::map<std::string, std::vector<LinkInfo*>>& newGlobalRoutingTable);
     void updateRoutingTable(const std::map<int, std::vector<LinkInfo*>>& newRoutingTable);
+    std::vector<LinkInfo*> getRouteForUnicast(int nodeId);
     std::vector<LinkInfo*> getSourceRoutesByDestId(int nodeId);
     std::vector<LinkInfo*> getSourceRoutesByDestIds(const std::vector<int>& nodeIds);
     std::vector<LinkInfo*> getMulticastRoutesByDestIds(const std::vector<int>& nodeIds);

@@ -38,7 +38,11 @@ namespace inet {
         std::string currentSatelliteName = this->getParentModule()->getFullName();
         int currentSatelliteId = LipsinTools::getSatelliteId(currentSatelliteName);
         std::string fromCurrentToNodeStr = std::to_string(currentSatelliteId) + "->" + std::to_string(nodeId);
-        return  this->sourceToDestinationRoutesMap[fromCurrentToNodeStr];
+        return this->sourceToDestinationRoutesMap[fromCurrentToNodeStr];
+    }
+
+    std::vector<LinkInfo*> LipsinRoutingTable::getRouteForUnicast(int nodeId){
+        return this->destinationRoutesMap[nodeId];
     }
 
     std::vector<LinkInfo*> LipsinRoutingTable::getSourceRoutesByDestIds(const std::vector<int>& nodeIds) {

@@ -326,7 +326,7 @@ void ChannelController::refreshDisplay() const
                 double destLongitude = destLatAndLong.second;
 
                 int situation = 0;
-                if(srcLatitude > destLatitude)
+                if((srcLatitude > destLatitude))
                 {
                     situation = 1;
                 }

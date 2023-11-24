@@ -257,7 +257,7 @@ namespace inet {
      * @return the new generate packet
      */
     std::vector<Packet*> LipsinSender::generateNewPackets(){
-        std::vector<Packet*> result;
+        std::vector<Packet*> result = {};
         // judge the current transmission pattern
         if(this->transmissionPattern == TransmissionPattern::MULTICAST){
             if(this->multicastPattern == MulticastPattern::PRIMARY){
@@ -303,8 +303,9 @@ namespace inet {
             packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&Protocol::lipsin_network); // next layer protocol
             // put the packet into the result
             result.push_back(packet);
+            return result;
         } else {
-            throw cRuntimeError("unknown transmission pattern"); // NOLINT
+            throw cRuntimeError("unknown transmission pattern hello"); // NOLINT
         }
     }
 
@@ -443,7 +444,7 @@ namespace inet {
                 throw cRuntimeError("in END-TO-END or MULTI-UNICAST transmission pattern (destIds has only one id)"); // NOLINT
             }
             int singleDestinationId = destIds[0];
-            std::vector<LinkInfo*> routes = lipsinRoutingTable->getSourceRoutesByDestId(singleDestinationId);
+            std::vector<LinkInfo*> routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
             if(this->singleTimeEncapsulationCount == -1){
                 for(auto& link : routes){
                     realLidsBf->insert(link->getId());
@@ -505,6 +506,8 @@ namespace inet {
             ss << "Multicast";
         } else if(this->transmissionPattern == TransmissionPattern::MULTI_UNICAST){
             ss << "MultiUnicast";
+        } else if(this->transmissionPattern == TransmissionPattern::UNICAST){
+            ss << "Unicast";
         }
         if(this->singleTimeEncapsulationCount != -1){
             ss << " Optimal Encoding";
