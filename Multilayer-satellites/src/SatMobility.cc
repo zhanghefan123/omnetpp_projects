@@ -160,23 +160,18 @@ void SatMobility::setLabelCharacters() {
 void SatMobility::setOrbitNormal() {
     std::string orbitNormalString = par(PAR_ORBIT_NORMAL.c_str());
     if (orbitNormalString.empty()){
-        // it is not a correct spherical distribution, nor deterministic, but will do here
         normal.set(dblrand() * 2 - 1, dblrand() * 2 - 1, dblrand() * 2 - 1);
     }
     else {
         std::stringstream ss(orbitNormalString);
-
-        /* std::istream::ignore Extract and discard characters. */
         double x, y, z;
         ss >> x;
         ss.ignore();
         ss >> y;
         ss.ignore();
         ss >> z;
-
         if (!ss)
             throw cRuntimeError("Couldn't parse orbit normal vector \"%s\", the correct format is for example \"2.5,3,0\", or leave it empty for random", orbitNormalString.c_str()); // NOLINT
-
         normal.set(x, y, z);
     }
     normal.normalize();
@@ -188,44 +183,48 @@ void SatMobility::setOrbitNormal() {
     orbitY = normal ^ cross;
 }
 
-/*
- * Initializes satellite parameters: altitude, modelURL, modelScale.. and call OSG library files for 3D display
- */
 void SatMobility::initialize(int stage)
 {
+    /**
+     * @brief initialize the satellite
+     * @param stage the stage of the initialization
+     */
     switch (stage) {
         case 0: {
-            modelURL = par(PAR_MODEL_URL.c_str()).stringValue();
-            modelScale = par(PAR_MODEL_SCALE.c_str());
-            labelColor = par(PAR_LABEL_COLOR.c_str()).stringValue();
-            altitude = par(PAR_ALTITUDE.c_str());
-            phase = startingPhase = par(PAR_STARTING_PHASE.c_str()).doubleValue() * M_PI / 180.0;
-            display_satellite_app = par(PAR_DISPLAY_SATELLITE_APP.c_str()).boolValue();
-            display_coverage = par(PAR_DISPLAY_COVERAGE.c_str()).boolValue();
-            setOrbitNormal();
-            orbitColor = par(PAR_ORBIT_COLOR.c_str()).stringValue();
-            coneColor = par(PAR_CONE_COLOR.c_str()).stringValue();
-            controller = getModuleFromPar<cModule>(par("ChannelControllerModule"),this);
-            /**
-             * Set the 3D scene to be displayed. Note that osg::Node implements
-             * reference counting, and setScene() increments the reference count.
-             */
-            getOsgCanvas()->setScene(osgDB::readNodeFile(modelURL));
+            initializePars();
+            initializeScene();
             break;
         }
         case 1:{
-
+            setOrbitNormal();
             setModelTree();
-
             setOrbit();
-
             setCoverage();
-
             break;
         }
         default:
             break;
     }
+}
+
+void SatMobility::initializePars(){
+    modelURL = par(PAR_MODEL_URL.c_str()).stringValue();
+    modelScale = par(PAR_MODEL_SCALE.c_str());
+    labelColor = par(PAR_LABEL_COLOR.c_str()).stringValue();
+    altitude = par(PAR_ALTITUDE.c_str());
+    phase = startingPhase = par(PAR_STARTING_PHASE.c_str()).doubleValue() * M_PI / 180.0;
+    display_satellite_app = par(PAR_DISPLAY_SATELLITE_APP.c_str()).boolValue();
+    display_coverage = par(PAR_DISPLAY_COVERAGE.c_str()).boolValue();
+    orbitColor = par(PAR_ORBIT_COLOR.c_str()).stringValue();
+    coneColor = par(PAR_CONE_COLOR.c_str()).stringValue();
+}
+
+void SatMobility::initializeScene() {
+    /**
+    * Set the 3D scene to be displayed. Note that osg::Node implements
+    * reference counting, and setScene() increments the reference count.
+    */
+    getOsgCanvas()->setScene(osgDB::readNodeFile(modelURL));
 }
 
 void SatMobility::updatePosition()
@@ -237,84 +236,37 @@ void SatMobility::updatePosition()
         osg::Vec3d v;
         mapNode->getMapSRS()->transformFromWorld(pos, v);
         geoTransform->setPosition(osgEarth::GeoPoint(mapNode->getMapSRS(), v));
-        lastPosition = getPosition();
+        lastPosition = calculatePosition();
         lastPositionUpdateTime = t;
-        emitMobilityStateChangedSignal();
-        checkPolarAreaEntering();
-        checkSatToGroundLink();
         // here we are going to get the app module
-        if(this->display_satellite_app){
-            cModule* udpApp = nullptr;
-            udpApp = this->getParentModule()->getSubmodule("app",0);
-            if(udpApp != nullptr){
-                auto* udpRequestModule = dynamic_cast<UdpRequest*>(udpApp);
-                if(udpRequestModule != nullptr){
-                    std::string final_str = getContainingNode(this)->getFullName();
-                    final_str += "\n";
-                    final_str += std::to_string(udpRequestModule->getThroughput());
-                    final_str += " Mbps";
-                    final_str += "\n";
-                    final_str += std::to_string(udpRequestModule->getSuccessfulRate());
-                    final_str += "%";
-                    this->label->setText(final_str);
-                }
+    }
+}
+
+void SatMobility::setAppLabel() {
+    if(this->display_satellite_app){
+        cModule* udpApp = nullptr;
+        udpApp = this->getParentModule()->getSubmodule("app",0);
+        if(udpApp != nullptr){
+            auto* udpRequestModule = dynamic_cast<UdpRequest*>(udpApp);
+            if(udpRequestModule != nullptr){
+                std::string final_str = getContainingNode(this)->getFullName();
+                final_str += "\n";
+                final_str += std::to_string(udpRequestModule->getThroughput());
+                final_str += " Mbps";
+                final_str += "\n";
+                final_str += std::to_string(udpRequestModule->getSuccessfulRate());
+                final_str += "%";
+                this->label->setText(final_str);
             }
         }
     }
 }
 
-void SatMobility::recorder(std::string filename)
-{
-    std::ofstream outfile;
-    outfile.open(filename, std::ofstream::app);
-
-    simtime_t time = simTime();                                      //get current time
-
-    cModule *host = getContainingNode(this);                         //get nodes name
-
-    double latitudes = getTransformPosition(lastPosition.x, lastPosition.y, lastPosition.z); //getCurrentPosition(latitude)
-}
-
-void SatMobility::checkSatToGroundLink()
-{
-    controller->emit(checkSatToGroundSignal,this);
-}
-
-void SatMobility::checkPolarAreaEntering()
-{
-    bool record = false;
-    bool direct;
-    simtime_t time = simTime();
-    double latitude = getTransformPosition(lastPosition.x, lastPosition.y, lastPosition.z);
-    if(latitude >= 66.32 && !isInPolarArea){
-        isInPolarArea = true;
-        controller->emit(enterPolarAreaSignal,this);
-        std::cout<< simTime() << " s, " << getContainingNode(this)->getFullName() << " Enter Polar, latitude; " << latitude << endl;
-    }else if(latitude >= 0 && latitude < 66.32 && isInPolarArea){
-        isInPolarArea = false;
-        controller->emit(leavePolarAreaSignal,this);
-    }else if(latitude < 0 && latitude > -66.32 && isInPolarArea){
-        isInPolarArea = false;
-        controller->emit(leavePolarAreaSignal,this);
-    }else if(latitude <= -66.32 && !isInPolarArea){
-        isInPolarArea = true;
-        controller->emit(enterPolarAreaSignal,this);
-    }
-}
-
-/*   * get a geocentric coordinate system position    */
-Coord SatMobility::getPosition()
-{
-    Coord position;
-
-    position.x = pos.x();
-    position.y = pos.y();
-    position.z = pos.z();
-
-    return position;
-}
-
 std::pair<double, double> SatMobility::getLatitudeAndLongitude(){
+    /**
+     * @brief get the latitude and longitude of the satellite
+     * @return the pair of latitude and longitude
+     */
     double a, b, c, d, p, q, N;
     double Longitude;
     double Latitude;
@@ -332,7 +284,6 @@ std::pair<double, double> SatMobility::getLatitudeAndLongitude(){
     q = std::atan2((z * a), (p * b));
 
     Longitude = std::atan2(y, x);
-//     Latitude = std::atan2((z + (d * d) * b * std::pow(std::sin(q), 3)), (p - (c * c) * a * std::pow(std::cos(q), 3)));
     Latitude = std::atan2(z, p);
 
     N = a / std::sqrt(1 - ((c * c) * std::pow(std::sin(Latitude), 2)));
@@ -345,57 +296,56 @@ std::pair<double, double> SatMobility::getLatitudeAndLongitude(){
     return pair;
 }
 
-
-double SatMobility::getTransformPosition(double x, double y, double z)
-{
-     double a, b, c, d, p, q, N;
-     double Longitude;
-     double Latitude;
-     double Altitude;
-
-     a = 6371137.0;
-     b = 6371752.31424518;
-
-     c = std::sqrt(((a * a) - (b * b)) / (a * a));
-     d = std::sqrt(((a * a) - (b * b)) / (b * b));
-     p = std::sqrt((x * x) + (y * y));
-     q = std::atan2((z * a), (p * b));
-
-     Longitude = std::atan2(y, x);
-//     Latitude = std::atan2((z + (d * d) * b * std::pow(std::sin(q), 3)), (p - (c * c) * a * std::pow(std::cos(q), 3)));
-     Latitude = std::atan2(z, p);
-
-     N = a / std::sqrt(1 - ((c * c) * std::pow(std::sin(Latitude), 2)));
-     Altitude = (p / std::cos(Latitude)) - N;
-
-     Longitude = Longitude * 180.0 / osg::PI;
-     Latitude = Latitude * 180.0 / osg::PI;
-
-     return Latitude;
- }
-
 osg::Vec3 SatMobility::getPositionAtPhase(double alpha) const
 {
-    return (orbitX * std::cos(alpha) + orbitY * std::sin(alpha)) * (earthRadius + altitude) * 1000;
+    /**
+     * @brief get the position of the satellite at the given phase
+     * @param alpha the phase
+     * @return the position
+     */
+    return (orbitX * std::cos(alpha) + orbitY * std::sin(alpha)) *
+    (earthRadius + altitude) * 1000;
 }
 
 void SatMobility::refreshDisplay() const
 {
+    /**
+     * @brief update the positon of the satellite and refresh the display
+     */
+    auto *satMobility = const_cast<SatMobility *>(this);
+    satMobility->updatePosition();
+    satMobility->setAppLabel();
+    getDisplayString().setTagArg("p", 0, long(300 + pos.x() / 100000));
+    getDisplayString().setTagArg("p", 1, long(300 - pos.y() / 100000));
+}
 
-    const_cast<SatMobility *>(this)->updatePosition();
-    // update the position on the 2D canvas
-    getDisplayString().setTagArg("p", 0, 300 + pos.x() / 100000);
-    getDisplayString().setTagArg("p", 1, 300 - pos.y() / 100000);
+Coord SatMobility::calculatePosition()
+{
+    /**
+     * calculate the current position of this satellite
+     * @return the position
+     */
+    Coord position;
+    position.x = pos.x();
+    position.y = pos.y();
+    position.z = pos.z();
+    return position;
 }
 
 Coord& SatMobility::getCurrentPosition()
 {
+    /**
+     * @brief return the last calculated position override the function in mobility
+     */
     return lastPosition;
 }
 
 void SatMobility::handleMessage(cMessage *msg)
 {
-    throw cRuntimeError("Not supposed to be called");
+    /**
+     * @brief handle the message
+     */
+    throw cRuntimeError("Not supposed to be called"); // NOLINT
 }
 #endif // WITH_OSGEARTH
 #endif // WITH_OSG

@@ -47,35 +47,28 @@ class SatMobility : public MobilityBase
     std::string coneColor;
     osg::Node* scene;
     double horizonDistance;
-
+    bool currentInPolarArea = false;
+    osgText::Text *label;
+    bool display_satellite_app = false;
+    bool display_coverage = false;
+public:
     void setModelTree();
     void setOrbitNormal();
     void setLabelCharacters();
     void setOrbit();
     void setCoverage();
-
-
-
-
-
-  public:
-    // zhf add code
-    osgText::Text *label;
-    bool display_satellite_app = false;
-    bool display_coverage = false;
-
+    void setAppLabel();
+    Coord& getCurrentPosition() override;
+    Coord calculatePosition();
+    void initializePars();
+    void initializeScene();
 
   protected:
-    // configuration
-
-
     // the node containing the osgEarth data
     osg::observer_ptr<osgEarth::MapNode> mapNode = nullptr;
 
     // osgEarth node for 3D visualization
     osgEarth::GeoTransform *geoTransform = nullptr;
-
-    cModule * controller = nullptr;
     const double mu = 398600.4418; // "geocentric gravitational constant" - source: wikipedia, units: km^3 / s^2
     const double earthRadius = 6371; // in km
 
@@ -89,19 +82,13 @@ class SatMobility : public MobilityBase
      * The -1 value turns off sending a self message for the next mobility state change.
      */
     simtime_t lastPositionUpdateTime = -1;
-    bool isInPolarArea = false;
 
   public:
     ~SatMobility() override = default;
-
-    Coord position;
-
+    void refreshDisplay() const override;
     double getHorizonDistance() const{ return horizonDistance; };
     /** @brief  get the node geotransform information. */
     osg::Node *getLocatorNode() { return geoTransform; };
-
-    /** A  geocentric coordinate system model maps scene coordinates to geographic coordinate system */
-    double getTransformPosition(double x, double y, double z);
 
     std::pair<double, double> getLatitudeAndLongitude();
 
@@ -119,9 +106,7 @@ class SatMobility : public MobilityBase
     Quaternion& getCurrentAngularAcceleration() override { return Quaternion::IDENTITY; }
 
 
-    /** @brief Achieve the satellite current position that can be used in constanttimePropagation. */
-//    virtual Coord getCurrentPosition() override { return lastPosition; }
-    virtual Coord& getCurrentPosition() override;
+
 
     /** @brief Useless functions in satellite networks. */
     const Coord& getCurrentVelocity() override { return Coord::ZERO; }
@@ -146,20 +131,8 @@ class SatMobility : public MobilityBase
     void initialize(int stage) override;
     int numInitStages() const override { return 2; }
 
-    /*A new function can be used to get the nodes' position.*/
-    virtual Coord getPosition();
-
-    void recorder(std::string filename);
-
-    void checkPolarAreaEntering();
-    void checkSatToGroundLink();
-
     /** @brief handleMessage.*/
     void handleMessage(cMessage *msg) override;
-
-public:
-    /** @brief Moves the visual representation module's icon to the new position on the screen.*/
-    void refreshDisplay() const override;
 };
 
 #endif
