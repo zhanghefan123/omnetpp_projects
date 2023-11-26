@@ -909,6 +909,7 @@ OBJS = \
     $O/inet/projects/dtn_network/dtn_states/DtnNeighborStateUp.o \
     $O/inet/projects/dtn_network/tools/tools.o \
     $O/inet/projects/dtn_network/uuid/uuid4.o \
+    $O/inet/projects/generic_tools/global_module/GlobalModule.o \
     $O/inet/projects/lipsin/const_vars/LipsinConstVar.o \
     $O/inet/projects/lipsin/lipsin_app/LipsinReceiver.o \
     $O/inet/projects/lipsin/lipsin_app/LipsinSender.o \

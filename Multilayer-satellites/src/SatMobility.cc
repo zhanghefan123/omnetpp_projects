@@ -11,7 +11,6 @@
 #ifdef WITH_OSGEARTH
 
 #include <sstream>
-#include <iostream>
 #include <osg/Node>
 #include <osg/Texture>
 #include <osg/LineWidth>
@@ -39,6 +38,11 @@ using namespace osgEarth::Annotation;
 using namespace osgEarth::Features;
 
 Define_Module(SatMobility);
+
+void SatMobility::setGlobalModule() {
+    std::string globalModuleName = "globalModule";
+    this->globalModule = dynamic_cast<GlobalModule*>(this->getParentModule()->getParentModule()->getSubmodule(globalModuleName.c_str()));
+}
 
 void SatMobility::setModelTree() {
     scene = OsgEarthScene::getInstance()->getScene(); // scene is initialized in stage 0 so we have to do our init in stage 1
@@ -183,6 +187,7 @@ void SatMobility::setOrbitNormal() {
     orbitY = normal ^ cross;
 }
 
+
 void SatMobility::initialize(int stage)
 {
     /**
@@ -192,14 +197,18 @@ void SatMobility::initialize(int stage)
     switch (stage) {
         case 0: {
             initializePars();
-            initializeScene();
+            setGlobalModule();
             break;
         }
         case 1:{
             setOrbitNormal();
-            setModelTree();
-            setOrbit();
-            setCoverage();
+            if(this->globalModule->startFromQtEnv)
+            {
+                initializeScene();
+                setModelTree();
+                setOrbit();
+                setCoverage();
+            }
             break;
         }
         default:
@@ -233,9 +242,11 @@ void SatMobility::updatePosition()
     if (t != lastPositionUpdateTime) {
         phase = startingPhase + t.dbl() * getOmega();
         pos = getPositionAtPhase(phase);
-        osg::Vec3d v;
-        mapNode->getMapSRS()->transformFromWorld(pos, v);
-        geoTransform->setPosition(osgEarth::GeoPoint(mapNode->getMapSRS(), v));
+        if(this->globalModule->startFromQtEnv){
+            osg::Vec3d v;
+            mapNode->getMapSRS()->transformFromWorld(pos, v);
+            geoTransform->setPosition(osgEarth::GeoPoint(mapNode->getMapSRS(), v));
+        }
         lastPosition = calculatePosition();
         lastPositionUpdateTime = t;
         // here we are going to get the app module

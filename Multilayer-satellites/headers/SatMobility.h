@@ -12,19 +12,16 @@
 
 #include <omnetpp.h>
 #include "OsgEarthScene.h"
-
-
 #include <osgEarth/MapNode>
 #include <osgEarth/GeoTransform>
 #include <osgEarthAnnotation/CircleNode>
 #include <osgEarthAnnotation/FeatureNode>
 #include "inet/common/INETDefs.h"
-
 #include "inet/common/geometry/common/GeographicCoordinateSystem.h"
-
 #include "inet/common/geometry/common/Coord.h"
 #include "inet/common/geometry/common/Quaternion.h"
 #include "inet/mobility/base/MobilityBase.h"
+#include "inet/projects/generic_tools/global_module/GlobalModule.h"
 
 using namespace omnetpp;
 using namespace inet;
@@ -51,7 +48,9 @@ class SatMobility : public MobilityBase
     osgText::Text *label;
     bool display_satellite_app = false;
     bool display_coverage = false;
+    GlobalModule* globalModule = nullptr;
 public:
+    void setGlobalModule();
     void setModelTree();
     void setOrbitNormal();
     void setLabelCharacters();
