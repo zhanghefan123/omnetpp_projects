@@ -49,9 +49,12 @@ class SatMobility : public MobilityBase
     bool display_satellite_app = false;
     bool display_coverage = false;
     GlobalModule* globalModule = nullptr;
+    ChannelController* controller = nullptr;
+    bool shouldCheckPolarAreaEnter = false;
 public:
     void checkPolarAreaEntering();
     void setGlobalModule();
+    void setChannelController();
     void setModelTree();
     void setOrbitNormal();
     void setLabelCharacters();

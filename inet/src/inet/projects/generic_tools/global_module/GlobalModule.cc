@@ -16,8 +16,7 @@ namespace inet{
 
     void GlobalModule::getQtOrCmd(){
         cEnvir* envir = this->getSimulation()->getEnvir();
-        char* envStr = envir->getArgVector()[3];
-        if(std::strcmp(envStr, "Qtenv") == 0){
+        if(envir->isGUI()){
             this->startFromQtEnv = true;
         } else {
             this->startFromQtEnv = false;

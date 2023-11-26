@@ -46,4 +46,6 @@ simple ChannelController
 
     double updatePositionInterval = default(1);
     double calculateLinkFailureInterval = default(10);
+
+    bool checkPolarEnter = default(false);
 }

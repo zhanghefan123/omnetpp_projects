@@ -394,7 +394,7 @@ namespace inet {
                 // get the global recorder
                 auto* pathHeader = const_cast<PathHeader*>(lipsinHeaderOld->getPathHeader());
                 int redundantForwardingHops = pathHeader->getActualLinkSet()->getLinkSetSize();
-                this->globalRecorder->redundantForwardCount += 1;
+                this->globalRecorder->redundantForwardCount += redundantForwardingHops;
             }
 
             // if we don't need to pass the packet to the application layer
@@ -633,9 +633,9 @@ namespace inet {
              * it want to activate the backup link 7->6->9->8, however the packet will
              * not forward to the incoming interface, so the packet will be dropped.
              */
-            //  if((incomingInterfaceId != -1) && (entry->getNetworkInterface()->getInterfaceId() == incomingInterfaceId)){
-            //      continue;
-            //  }
+             if((incomingInterfaceId != -1) && (entry->getNetworkInterface()->getInterfaceId() == incomingInterfaceId)){
+               continue;
+             }
 
             // loop prevention
             if(entry->getNetworkInterface()->findNonce(lipsinHeaderOld->getNonce())){

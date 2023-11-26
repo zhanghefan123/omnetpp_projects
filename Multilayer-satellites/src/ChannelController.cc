@@ -78,6 +78,8 @@ void ChannelController::initialize(int stage)
             rngNumber = int(par(PAR_RNG_NUMBER.c_str()).intValue());
             recoverInterval = int(par(PAR_RECOVER_INTERVAL.c_str()).intValue());
 
+            checkPolarEnter = par(PAR_CHECK_POLAR_ENTER.c_str()).boolValue();
+
             break;
         }
         case 1:{

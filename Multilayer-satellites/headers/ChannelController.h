@@ -82,6 +82,8 @@ class INET_API ChannelController : public cListener, public cSimpleModule
     cMessage * calculateLinkFailureEvent = nullptr;
     // ----------- ALL SELF MSGS --------------------
 
+    bool checkPolarEnter = false;
+
 protected:
     void initialize(int stage) override;
     int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -97,6 +99,7 @@ protected:
     osgEarth::Util::LinearLineOfSightNode *addLineOfSight(osg::Node *a, osg::Node *b, int type);
 
   public:
+    bool getCheckPolarEnter() const{return this->checkPolarEnter;}
     GatePair getGatePair(const cXMLElement *node);
     static bool judgeLinkSrcOrDestHasApps(Link& link);
     double calculate_link_failure();

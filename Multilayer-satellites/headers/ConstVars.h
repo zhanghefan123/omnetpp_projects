@@ -72,5 +72,9 @@ namespace inet{
     const std::string PAR_CONE_COLOR = "coneColor";
     // -------------------------------- for Satellite Mobility ------------------------------
 
+
+    // ------------------------------- check polar enter ---------------------------------
+    const std::string PAR_CHECK_POLAR_ENTER = "checkPolarEnter";
+    // ------------------------------- check polar enter ---------------------------------
 }
 #endif //DELAYTOLERANTNETWORK_CONSTVARS_H
