@@ -50,6 +50,7 @@ class SatMobility : public MobilityBase
     bool display_coverage = false;
     GlobalModule* globalModule = nullptr;
 public:
+    void checkPolarAreaEntering();
     void setGlobalModule();
     void setModelTree();
     void setOrbitNormal();

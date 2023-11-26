@@ -39,6 +39,23 @@ using namespace osgEarth::Features;
 
 Define_Module(SatMobility);
 
+void SatMobility::checkPolarAreaEntering() {
+    std::pair<double, double> currentLatitudeAndLongitude = getLatitudeAndLongitude();
+    double currentLatitude = currentLatitudeAndLongitude.first;
+    if(currentLatitude > 66.32 || currentLatitude < -66.32){
+        if(!currentInPolarArea){
+            currentInPolarArea = true;
+            this->emit(enterPolarAreaSignal, this);
+        }
+    }
+    else{
+        if(currentInPolarArea){
+            currentInPolarArea = false;
+            this->emit(leavePolarAreaSignal, this);
+        }
+    }
+}
+
 void SatMobility::setGlobalModule() {
     std::string globalModuleName = "globalModule";
     this->globalModule = dynamic_cast<GlobalModule*>(this->getParentModule()->getParentModule()->getSubmodule(globalModuleName.c_str()));
@@ -326,6 +343,7 @@ void SatMobility::refreshDisplay() const
     auto *satMobility = const_cast<SatMobility *>(this);
     satMobility->updatePosition();
     satMobility->setAppLabel();
+    satMobility->checkPolarAreaEntering();
     getDisplayString().setTagArg("p", 0, long(300 + pos.x() / 100000));
     getDisplayString().setTagArg("p", 1, long(300 - pos.y() / 100000));
 }
