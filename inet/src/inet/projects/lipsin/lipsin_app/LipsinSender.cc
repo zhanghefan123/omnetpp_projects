@@ -222,8 +222,9 @@ namespace inet {
                 for(auto singlePacket : generatedPackets){
                     this->send(singlePacket, "appOut");
                     this->recorder->packetSentCount += 1;
+                    this->currentBloomFilterSeed += 100;
                 }
-                this->scheduleAt(currentTime + this->sendInterval, this->sendTimer);
+               this->scheduleAt(currentTime + this->sendInterval, this->sendTimer);
             }
         }
     }
@@ -372,7 +373,7 @@ namespace inet {
      */
     void LipsinSender::encapsulateLipsin(Packet* packet, const std::vector<int>& destIds, int packetType) {
         // seed for the bloom filter
-        int seed = 0;
+        int seed = this->currentBloomFilterSeed;
 
         // create lipsin Header
         const auto& lipsinHeader = makeShared<LipsinHeader>();
@@ -477,6 +478,10 @@ namespace inet {
         // ---------------------------------------------------------------------------------------------
         packet->insertAtFront(lipsinHeader);
         // ---------------------------------------------------------------------------------------------
+
+        // print the bit set rate of this packet
+        double bitSetRate = realLidsBf->getBitSetRate();
+        this->recorder->sumBitSetRate += bitSetRate;
     }
 
     /**

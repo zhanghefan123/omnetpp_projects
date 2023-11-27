@@ -25,8 +25,9 @@ enum LinkFailureMechanism{
 };
 
 class LipsinForwarder:public omnetpp::cSimpleModule, public cListener{ // NOLINT
-public: 
-    cMessage* helloTimer;
+public:
+    LipsinGlobalRecorder* recorder;
+    cMessage* helloTimer = nullptr;
     double helloInterval;
 public:
     LinkFailureMechanism linkFailureMechanism;
@@ -76,7 +77,7 @@ protected:
     int numInitStages() const override { return NUM_INIT_STAGES; }
     void subscribeSignals();
     void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
-
+    void setLipsinRecorder();
 };
 
 } /* namespace inet */

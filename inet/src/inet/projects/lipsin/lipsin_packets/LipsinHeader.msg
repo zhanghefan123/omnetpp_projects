@@ -45,6 +45,8 @@ class LipsinHeader extends FieldsChunk{
     double packetCreatedTime;
     double propagationDelay;
     double transmissionDelay;
+    bool wrongDirection;
+    int hopCount;
 }
 
 cplusplus(LipsinHeader){{

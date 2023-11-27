@@ -26,6 +26,8 @@ namespace inet{
         void insert(int linkIdentifier);
         bool query(int linkIdentifier);
         void reset();
+        // get the bit set rate of the bloom filter
+        double getBitSetRate();
     public:
         // getter and setter
         int getM() const {

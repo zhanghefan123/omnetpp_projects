@@ -198,6 +198,8 @@ void LipsinHeader::copy(const LipsinHeader& other)
     this->packetCreatedTime = other.packetCreatedTime;
     this->propagationDelay = other.propagationDelay;
     this->transmissionDelay = other.transmissionDelay;
+    this->wrongDirection = other.wrongDirection;
+    this->hopCount = other.hopCount;
 }
 
 void LipsinHeader::parsimPack(omnetpp::cCommBuffer *b) const
@@ -217,6 +219,8 @@ void LipsinHeader::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->packetCreatedTime);
     doParsimPacking(b,this->propagationDelay);
     doParsimPacking(b,this->transmissionDelay);
+    doParsimPacking(b,this->wrongDirection);
+    doParsimPacking(b,this->hopCount);
 }
 
 void LipsinHeader::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -242,6 +246,8 @@ void LipsinHeader::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->packetCreatedTime);
     doParsimUnpacking(b,this->propagationDelay);
     doParsimUnpacking(b,this->transmissionDelay);
+    doParsimUnpacking(b,this->wrongDirection);
+    doParsimUnpacking(b,this->hopCount);
 }
 
 int LipsinHeader::getPacketType() const
@@ -446,6 +452,28 @@ void LipsinHeader::setTransmissionDelay(double transmissionDelay)
     this->transmissionDelay = transmissionDelay;
 }
 
+bool LipsinHeader::getWrongDirection() const
+{
+    return this->wrongDirection;
+}
+
+void LipsinHeader::setWrongDirection(bool wrongDirection)
+{
+    handleChange();
+    this->wrongDirection = wrongDirection;
+}
+
+int LipsinHeader::getHopCount() const
+{
+    return this->hopCount;
+}
+
+void LipsinHeader::setHopCount(int hopCount)
+{
+    handleChange();
+    this->hopCount = hopCount;
+}
+
 class LipsinHeaderDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -464,6 +492,8 @@ class LipsinHeaderDescriptor : public omnetpp::cClassDescriptor
         FIELD_packetCreatedTime,
         FIELD_propagationDelay,
         FIELD_transmissionDelay,
+        FIELD_wrongDirection,
+        FIELD_hopCount,
     };
   public:
     LipsinHeaderDescriptor();
@@ -530,7 +560,7 @@ const char *LipsinHeaderDescriptor::getProperty(const char *propertyName) const
 int LipsinHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 13+base->getFieldCount() : 13;
+    return base ? 15+base->getFieldCount() : 15;
 }
 
 unsigned int LipsinHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -555,8 +585,10 @@ unsigned int LipsinHeaderDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_packetCreatedTime
         FD_ISEDITABLE,    // FIELD_propagationDelay
         FD_ISEDITABLE,    // FIELD_transmissionDelay
+        FD_ISEDITABLE,    // FIELD_wrongDirection
+        FD_ISEDITABLE,    // FIELD_hopCount
     };
-    return (field >= 0 && field < 13) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 15) ? fieldTypeFlags[field] : 0;
 }
 
 const char *LipsinHeaderDescriptor::getFieldName(int field) const
@@ -581,8 +613,10 @@ const char *LipsinHeaderDescriptor::getFieldName(int field) const
         "packetCreatedTime",
         "propagationDelay",
         "transmissionDelay",
+        "wrongDirection",
+        "hopCount",
     };
-    return (field >= 0 && field < 13) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 15) ? fieldNames[field] : nullptr;
 }
 
 int LipsinHeaderDescriptor::findField(const char *fieldName) const
@@ -602,6 +636,8 @@ int LipsinHeaderDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "packetCreatedTime") == 0) return baseIndex + 10;
     if (strcmp(fieldName, "propagationDelay") == 0) return baseIndex + 11;
     if (strcmp(fieldName, "transmissionDelay") == 0) return baseIndex + 12;
+    if (strcmp(fieldName, "wrongDirection") == 0) return baseIndex + 13;
+    if (strcmp(fieldName, "hopCount") == 0) return baseIndex + 14;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -627,8 +663,10 @@ const char *LipsinHeaderDescriptor::getFieldTypeString(int field) const
         "double",    // FIELD_packetCreatedTime
         "double",    // FIELD_propagationDelay
         "double",    // FIELD_transmissionDelay
+        "bool",    // FIELD_wrongDirection
+        "int",    // FIELD_hopCount
     };
-    return (field >= 0 && field < 13) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 15) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **LipsinHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -729,6 +767,8 @@ std::string LipsinHeaderDescriptor::getFieldValueAsString(omnetpp::any_ptr objec
         case FIELD_packetCreatedTime: return double2string(pp->getPacketCreatedTime());
         case FIELD_propagationDelay: return double2string(pp->getPropagationDelay());
         case FIELD_transmissionDelay: return double2string(pp->getTransmissionDelay());
+        case FIELD_wrongDirection: return bool2string(pp->getWrongDirection());
+        case FIELD_hopCount: return long2string(pp->getHopCount());
         default: return "";
     }
 }
@@ -755,6 +795,8 @@ void LipsinHeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int 
         case FIELD_packetCreatedTime: pp->setPacketCreatedTime(string2double(value)); break;
         case FIELD_propagationDelay: pp->setPropagationDelay(string2double(value)); break;
         case FIELD_transmissionDelay: pp->setTransmissionDelay(string2double(value)); break;
+        case FIELD_wrongDirection: pp->setWrongDirection(string2bool(value)); break;
+        case FIELD_hopCount: pp->setHopCount(string2long(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'LipsinHeader'", field);
     }
 }
@@ -782,6 +824,8 @@ omnetpp::cValue LipsinHeaderDescriptor::getFieldValue(omnetpp::any_ptr object, i
         case FIELD_packetCreatedTime: return pp->getPacketCreatedTime();
         case FIELD_propagationDelay: return pp->getPropagationDelay();
         case FIELD_transmissionDelay: return pp->getTransmissionDelay();
+        case FIELD_wrongDirection: return pp->getWrongDirection();
+        case FIELD_hopCount: return pp->getHopCount();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'LipsinHeader' as cValue -- field index out of range?", field);
     }
 }
@@ -811,6 +855,8 @@ void LipsinHeaderDescriptor::setFieldValue(omnetpp::any_ptr object, int field, i
         case FIELD_packetCreatedTime: pp->setPacketCreatedTime(value.doubleValue()); break;
         case FIELD_propagationDelay: pp->setPropagationDelay(value.doubleValue()); break;
         case FIELD_transmissionDelay: pp->setTransmissionDelay(value.doubleValue()); break;
+        case FIELD_wrongDirection: pp->setWrongDirection(value.boolValue()); break;
+        case FIELD_hopCount: pp->setHopCount(omnetpp::checked_int_cast<int>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'LipsinHeader'", field);
     }
 }

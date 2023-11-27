@@ -69,6 +69,21 @@ namespace inet {
 
 #pragma pack()
 
+    inline double getInsideBloomFilterSetRate(CppBloomFilter* pstBloomFilter){
+        double bitSetRate = 0;
+        double setOneBits = 0;
+        // traverse all the bits
+        for(int bitIndex = 0; bitIndex < pstBloomFilter->dwFilterBits; bitIndex++){
+            // GET the bit in the
+            int result = GETBIT(pstBloomFilter, bitIndex);
+            if(result != 0){
+                setOneBits += 1;
+            }
+        }
+        bitSetRate = setOneBits / pstBloomFilter->dwFilterBits;
+        return bitSetRate;
+    }
+
     inline int InitBloomFilterWithMandK(CppBloomFilter *pstBloomfilter, uint32_t dwSeed, uint32_t filterBits,
                                         uint32_t numHashFuncs) {
         if (pstBloomfilter == nullptr)

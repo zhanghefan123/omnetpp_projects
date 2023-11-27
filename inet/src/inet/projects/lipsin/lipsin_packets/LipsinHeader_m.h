@@ -70,6 +70,8 @@ namespace inet {
  *     double packetCreatedTime;
  *     double propagationDelay;
  *     double transmissionDelay;
+ *     bool wrongDirection;
+ *     int hopCount;
  * }
  * </pre>
  */
@@ -90,6 +92,8 @@ class INET_API LipsinHeader : public ::inet::FieldsChunk
     double packetCreatedTime = 0;
     double propagationDelay = 0;
     double transmissionDelay = 0;
+    bool wrongDirection = false;
+    int hopCount = 0;
 
   private:
     void copy(const LipsinHeader& other);
@@ -153,6 +157,12 @@ class INET_API LipsinHeader : public ::inet::FieldsChunk
 
     virtual double getTransmissionDelay() const;
     virtual void setTransmissionDelay(double transmissionDelay);
+
+    virtual bool getWrongDirection() const;
+    virtual void setWrongDirection(bool wrongDirection);
+
+    virtual int getHopCount() const;
+    virtual void setHopCount(int hopCount);
 
 
 public:

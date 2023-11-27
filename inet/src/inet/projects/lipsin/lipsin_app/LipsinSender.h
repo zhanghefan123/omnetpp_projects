@@ -28,6 +28,7 @@ namespace inet {
 
     class SendRecorder{ // NOLINT
     public:
+        double sumBitSetRate = 0;
         double sumDelay;
         double averageDelay;
         int packetSentCount = 0;
@@ -46,6 +47,9 @@ private:
     int satelliteId;
     std::string satelliteName;
     int packetLength;
+
+    // current seed
+    int currentBloomFilterSeed;
 
     // recorder
     SendRecorder* recorder;

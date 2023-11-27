@@ -5,6 +5,7 @@ inet/out/
 Multilayer-satellites/out/
 Multilayer-satellites/projects/
 .metadata/
+statistic/
 *.sca
 *.txt
 *.log

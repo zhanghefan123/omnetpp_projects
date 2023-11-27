@@ -59,7 +59,7 @@ protected:
     /**
      * Constructor.
      */
-    SatToSat(const char *name = nullptr): ThruputMeteringChannel(name),cListener(),initialized(false){}
+    explicit SatToSat(const char *name = nullptr): ThruputMeteringChannel(name),cListener(),initialized(false){}
 
     /**
      * Copy constructor.
@@ -69,7 +69,7 @@ protected:
     /**
      * Destructor.
      */
-    ~SatToSat(){}
+    ~SatToSat() override= default;
 
     /**
      * Assignment

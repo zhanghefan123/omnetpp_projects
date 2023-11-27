@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for $(LIB_PREFIX)INET
 #
 # This file was generated with the command:
-#  opp_makemake --make-so -f --deep -o INET -O out -pINET -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites/headers -I. -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites -Xinet/applications/voipstream -Xinet/clock/base -Xinet/clock/common -Xinet/clock/model -Xinet/clock/oscillator -Xinet/emulation -Xinet/transportlayer/tcp_lwip -Xinet/transportlayer/tcp_nsc -Xinet/visualizer/osg
+#  opp_makemake --make-so -f --deep -o INET -O out -pINET -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites/headers -I. -Xinet/applications/voipstream -Xinet/clock/base -Xinet/clock/common -Xinet/clock/model -Xinet/clock/oscillator -Xinet/emulation -Xinet/transportlayer/tcp_lwip -Xinet/transportlayer/tcp_nsc -Xinet/visualizer/osg
 #
 
 # Name of target to be created (-o option)
@@ -14,7 +14,7 @@ TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)
 TARGET_FILES = $(TARGET_DIR)/$(TARGET)
 
 # C++ include paths (with -I)
-INCLUDE_PATH = -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites/headers -I. -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites
+INCLUDE_PATH = -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites/headers -I.
 
 # Additional object and library files to link with
 EXTRA_OBJS =

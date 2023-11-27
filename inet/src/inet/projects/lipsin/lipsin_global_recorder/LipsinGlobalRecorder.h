@@ -15,6 +15,8 @@ namespace inet {
 class LipsinGlobalRecorder : public cSimpleModule{
 public:
     bool startFromQtEnv = false;
+    int maxForwardCount = 0;
+    double sumBitSetRate = 0;
     std::string transmissionPattern;
     int redundantForwardCount = 0;
     int totalReceivedPackets = 0;

@@ -79,6 +79,10 @@ namespace inet {
         RealResetBloomFilter(this->innerCppBloomFilter);
     }
 
+    double BloomFilter::getBitSetRate() {
+        return getInsideBloomFilterSetRate(this->innerCppBloomFilter);
+    }
+
     // goBloomFilter implementation
     /*
     void BloomFilter::deleteBF(const std::string& uuid) { // NOLINT

@@ -42,12 +42,15 @@ namespace inet {
             ss << "transmission pattern: " << this->transmissionPattern << std::endl;
             ss << "lid Increase: " << lidIncrease << std::endl;
             ss << "redundant forward count: " << this->redundantForwardCount << std::endl;
+            ss << "avg redundant forward count: " << double(this->redundantForwardCount) / double(this->totalSendPackets) << std::endl;
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
             ss << "total received packet count: " << this->totalReceivedPackets << std::endl;
             ss << "avg throughput: " << this->avgLipsinThroughput << "Mbps" << std::endl;
             ss << "avg total delay: " << (this->avgLipsinTotalDelaySum / this->totalLipsinReceiver) << "ms" << std::endl;
             ss << "avg queueing delay: " << (this->avgLipsinQueueingDelaySum / this->totalLipsinReceiver) << "ms" << std::endl;
             ss << "successful ratio: " << (double(this->totalReceivedPackets) / double(this->totalSendPackets)) * 100<< std::endl;
+            ss << "avg bit set rate: " << this->sumBitSetRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
+            ss << "max forward count: " << this->maxForwardCount << std::endl;
             ss << std::endl;
         }else{
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
@@ -129,6 +132,7 @@ namespace inet {
                     } else {
                         this->totalSendPackets += (sendRecorder->packetSentCount);
                     }
+                    this->sumBitSetRate += sendRecorder->sumBitSetRate;
                 }
             }
             this->avgLipsinThroughput = this->totalLipsinThroughput / double(this->totalLipsinReceiver);

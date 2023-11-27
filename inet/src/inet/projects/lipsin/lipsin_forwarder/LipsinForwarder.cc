@@ -16,6 +16,7 @@
 #include "inet/projects/lipsin/lipsin_table/LipsinRoutingTable.h"
 #include "inet/projects/lipsin/const_vars/LipsinConstVar.h"
 #include "SatToSat.h"
+#include "inet/projects/lipsin/lipsin_table/LinkInfo.h"
 
 namespace inet {
     Define_Module(LipsinForwarder);
@@ -28,6 +29,10 @@ namespace inet {
                 delete this->helloTimer;
             }
         }
+    }
+
+    void LipsinForwarder::setLipsinRecorder() {
+        this->recorder = dynamic_cast<LipsinGlobalRecorder*>(this->getSystemModule()->getSubmodule("lipsinGlobalRecorder"));
     }
 
     /**
@@ -47,6 +52,7 @@ namespace inet {
             setGlobalRecorder();
             setSingleTimeEncapsulationCount();
             setLinkFailureMechanism();
+            setLipsinRecorder();
         } else if (stage == INITSTAGE_LAST){
             if(this->lsaUp) {
                 setLipsinNeighborsUp();
@@ -214,7 +220,8 @@ namespace inet {
         packet->removeTag<DispatchProtocolReq>();
         // -----------------------------------------------------------------------------
 
-        if(this->linkFailureMechanism == LinkFailureMechanism::BACKUPLINK){
+        if(this->linkFailureMechanism == LinkFailureMechanism::BACKUPLINK)
+        {
             // get the (lipsinheader, realBf, virtualBf, pathheader) from the packet
             // -------------------------------------------------------------------------------------
             auto lipsinHeaderOld = packet->peekAtFront<LipsinHeader>();
@@ -241,7 +248,8 @@ namespace inet {
             traverseAndForwardPackets(vltEntries, -1, lipsinHeaderOld,
                                       const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
             // -----------------------------------------------------------------------------------------
-        } else if (this->linkFailureMechanism == LinkFailureMechanism::REROUTING){
+        }
+        else if (this->linkFailureMechanism == LinkFailureMechanism::REROUTING){
             // get the lipsin header and the bloom filter in the header
             auto lipsinHeaderOld = packet->peekAtFront<LipsinHeader>();
             auto* oldRealLidsBf = const_cast<BloomFilter *>(lipsinHeaderOld->getRealLidsBf());
@@ -255,7 +263,8 @@ namespace inet {
             traverseAndForwardPackets(pltEntries, -1, lipsinHeaderOld,
                                       const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
             // -----------------------------------------------------------------------------------------
-        } else if(this->linkFailureMechanism == LinkFailureMechanism::DIRECT_FORWARDING){
+        }
+        else if(this->linkFailureMechanism == LinkFailureMechanism::DIRECT_FORWARDING){
             // get the lipsin header and the bloom filter in the header
             auto lipsinHeaderOld = packet->peekAtFront<LipsinHeader>();
             auto* oldRealLidsBf = const_cast<BloomFilter *>(lipsinHeaderOld->getRealLidsBf());
@@ -273,6 +282,8 @@ namespace inet {
         // we need to delete original packet
         LipsinTools::delete_lipsin_packet(packet);
     }
+
+
 
     /**
      * handle the packet from the low layer
@@ -295,6 +306,31 @@ namespace inet {
 
         // get the original lipsin header
         auto lipsinHeaderOld = packet->removeAtFront<LipsinHeader>();
+
+        // get current hop
+        int hopCount = lipsinHeaderOld->getHopCount();
+        if(hopCount >= 10){
+            packet->insertAtFront(lipsinHeaderOld);
+            // we need to delete the packet
+            LipsinTools::delete_lipsin_packet(packet);
+            return;
+        } else {
+            lipsinHeaderOld->setHopCount(hopCount+1);
+            if((hopCount+1) > this->recorder->maxForwardCount){
+                this->recorder->maxForwardCount = hopCount + 1;
+            }
+        }
+
+        // record the maximum hop count
+        /*
+        int currentHopCount = lipsinHeaderOld->getHopCount();
+        int updatedHopCount = currentHopCount + 1;
+        lipsinHeaderOld->setHopCount(updatedHopCount);
+        if(updatedHopCount > this->recorder->maxForwardCount){
+            this->recorder->maxForwardCount = updatedHopCount;
+        }
+         */
+
 
         // get the packet type
         int packetType = lipsinHeaderOld->getPacketType();
@@ -332,49 +368,62 @@ namespace inet {
             packet->removeTagIfPresent<PacketProtocolTag>();
             packet->removeTagIfPresent<DispatchProtocolReq>();
 
-            if(this->linkFailureMechanism == LinkFailureMechanism::BACKUPLINK){
-                // forward packet process
-                // get the bloom filter in the old lipsin header
-                auto* oldVirtualLidsBf = const_cast<BloomFilter *>(lipsinHeaderOld->getVirtualLidsBf());
-                auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
+            // zhf add code
+            // pass the packet to the upper layer
+            // ---------------------------------------------
+            bool dontForwardPackets = false;
+            if(this->checkIsDestination(lipsinHeaderOld)) {
+                // judge the app number
+                if (this->getParentModule()->getParentModule()->par("hasLipsinReceiver").boolValue()) {
+                    dontForwardPackets = true;
+                }
+            }
+            // ---------------------------------------------
+            if(!dontForwardPackets){
+                if(this->linkFailureMechanism == LinkFailureMechanism::BACKUPLINK){
+                    // forward packet process
+                    // get the bloom filter in the old lipsin header
+                    auto* oldVirtualLidsBf = const_cast<BloomFilter *>(lipsinHeaderOld->getVirtualLidsBf());
+                    auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
 
-                // first we need to traverse the down link table and update bloom filter
-                std::set<int> dontForwardInterfaceIds = traverseDownLinkTableAndUpdateBf(oldRealLidsBf, oldVirtualLidsBf);
+                    // first we need to traverse the down link table and update bloom filter
+                    std::set<int> dontForwardInterfaceIds = traverseDownLinkTableAndUpdateBf(oldRealLidsBf, oldVirtualLidsBf);
 
-                // second we need to traverse the physical lipsin link table and forward the packet
-                std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
-                totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
-                                                                    const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
+                    // second we need to traverse the physical lipsin link table and forward the packet
+                    std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+                    totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
+                                                                        const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
 
 
 
-                // finally we will traverse the virtual link table to forward the packet
-                std::vector<LinkInfo*> vltEntries = vlt->findOutputLinkIdentifiers(oldVirtualLidsBf);
-                totalForwardDirections += traverseAndForwardPackets(vltEntries, incomingInterfaceId, lipsinHeaderOld,
-                                                                    const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
-            } else if (this->linkFailureMechanism == LinkFailureMechanism::REROUTING){
-                // forward packet process
-                auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
-                traverseDownLinkTableAndRerouting(lipsinHeaderOld, oldRealLidsBf);
-                // second we need to traverse the physical lipsin link table and forward the packet
-                // -----------------------------------------------------------------------------------------
-                std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
-                std::set<int> dontForwardInterfaceIds = {};
-                totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
-                                                                    const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
-                // -----------------------------------------------------------------------------------------
-            } else if(this->linkFailureMechanism == LinkFailureMechanism::DIRECT_FORWARDING){
-                // forward packet process
-                auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
-                // second we need to traverse the physical lipsin link table and forward the packet
-                // -----------------------------------------------------------------------------------------
-                std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
-                std::set<int> dontForwardInterfaceIds = {};
-                totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
-                                                                    const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
-                // -----------------------------------------------------------------------------------------
-            } else {
-                throw cRuntimeError("unknown link failure mechanism"); // NOLINT
+                    // finally we will traverse the virtual link table to forward the packet
+                    std::vector<LinkInfo*> vltEntries = vlt->findOutputLinkIdentifiers(oldVirtualLidsBf);
+                    totalForwardDirections += traverseAndForwardPackets(vltEntries, incomingInterfaceId, lipsinHeaderOld,
+                                                                        const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
+                } else if (this->linkFailureMechanism == LinkFailureMechanism::REROUTING){
+                    // forward packet process
+                    auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
+                    traverseDownLinkTableAndRerouting(lipsinHeaderOld, oldRealLidsBf);
+                    // second we need to traverse the physical lipsin link table and forward the packet
+                    // -----------------------------------------------------------------------------------------
+                    std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+                    std::set<int> dontForwardInterfaceIds = {};
+                    totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
+                                                                        const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
+                    // -----------------------------------------------------------------------------------------
+                } else if(this->linkFailureMechanism == LinkFailureMechanism::DIRECT_FORWARDING){
+                    // forward packet process
+                    auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
+                    // second we need to traverse the physical lipsin link table and forward the packet
+                    // -----------------------------------------------------------------------------------------
+                    std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+                    std::set<int> dontForwardInterfaceIds = {};
+                    totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
+                                                                        const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
+                    // -----------------------------------------------------------------------------------------
+                } else {
+                    throw cRuntimeError("unknown link failure mechanism"); // NOLINT
+                }
             }
             // pass the packet to the upper layer
             if(this->checkIsDestination(lipsinHeaderOld)){
@@ -391,6 +440,7 @@ namespace inet {
             }
 
             // record the redundant forward count
+            /*
             if((totalForwardDirections == 0) && (!uploadToTheApplicationLayer)){
                 // get the global recorder
                 auto* pathHeader = const_cast<PathHeader*>(lipsinHeaderOld->getPathHeader());
@@ -399,6 +449,7 @@ namespace inet {
                 std::cout << "redundant forwarding hops = " << redundantForwardingHops << std::endl;
                 this->globalRecorder->redundantForwardCount += pathHeader->calculateRedundantForwarding();
             }
+             */
 
             // if we don't need to pass the packet to the application layer
             // then we need to delete the packet
@@ -624,6 +675,7 @@ namespace inet {
                 continue;
             }
 
+
             // we will not send the packet back to the incoming interface
             // to prevent the follow case
             /*             5 - 6 - 9
@@ -637,12 +689,11 @@ namespace inet {
              * not forward to the incoming interface, so the packet will be dropped.
              */
              if((incomingInterfaceId != -1) && (entry->getNetworkInterface()->getInterfaceId() == incomingInterfaceId)){
-               continue;
+                 continue;
              }
 
             // loop prevention
             if(entry->getNetworkInterface()->findNonce(lipsinHeaderOld->getNonce())){
-                // LipsinTools::module_log(this,"loop prevention");
                 continue;
             }
 
@@ -671,6 +722,16 @@ namespace inet {
             newPathHeader->getActualLinkSet()->addLink(entry);
             lipsinHeaderNew->setPathHeader(newPathHeader);
 
+
+            // update redundant forward count
+            int currentHop = newPathHeader->getActualLinkSet()->getLinkSetSize();
+            std::vector<LinkInfo*> sourceDecide = newPathHeader->getSourceDecideLinkSet()->getInnerVector();
+            bool wrongDirection = lipsinHeaderNew->getWrongDirection();
+            if(wrongDirection || (sourceDecide.size() < currentHop) || (sourceDecide[currentHop-1]->getId() != entry->getId())){
+                globalRecorder->redundantForwardCount += 1;
+                lipsinHeaderNew->setWrongDirection(true);
+            }
+
             // zhf add set propagation delay
             // --------------------------------------------------------------------------------------------
             int interfaceIndex = entry->getNetworkInterface()->getIndex();
@@ -679,6 +740,7 @@ namespace inet {
             auto* channel = dynamic_cast<SatToSat*>(correspondingGate->getChannel());
             channel->getDistance();
             double propagationDelay = channel->getDelay().dbl() * 1000;
+            channel = nullptr;
             lipsinHeaderNew->setPropagationDelay(lipsinHeaderNew->getPropagationDelay() + propagationDelay);
             // --------------------------------------------------------------------------------------------
 
