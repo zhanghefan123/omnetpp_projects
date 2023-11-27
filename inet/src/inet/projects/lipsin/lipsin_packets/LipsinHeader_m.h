@@ -48,7 +48,7 @@ class LipsinHeader;
 namespace inet {
 
 // cplusplus {{
-	const B LIPSIN_HEADER_LENGTH = B(10); // length of the LIPSIN HEADER
+	const B LIPSIN_HEADER_LENGTH = B(10); // length of the LIPSIN HEADER // send packet size = 1000 + 14(mac header) + 4(mac tail) + 10(LIPSIN_HEADER) + 8(front) = 1036 without ip header
 // }}
 
 /**
@@ -67,6 +67,9 @@ namespace inet {
  *     string source;
  *     int intermediateNode;
  *     int destinationList[];
+ *     double packetCreatedTime;
+ *     double propagationDelay;
+ *     double transmissionDelay;
  * }
  * </pre>
  */
@@ -84,6 +87,9 @@ class INET_API LipsinHeader : public ::inet::FieldsChunk
     int intermediateNode = 0;
     int *destinationList = nullptr;
     size_t destinationList_arraysize = 0;
+    double packetCreatedTime = 0;
+    double propagationDelay = 0;
+    double transmissionDelay = 0;
 
   private:
     void copy(const LipsinHeader& other);
@@ -138,6 +144,15 @@ class INET_API LipsinHeader : public ::inet::FieldsChunk
     [[deprecated]] void insertDestinationList(int destinationList) {appendDestinationList(destinationList);}
     virtual void appendDestinationList(int destinationList);
     virtual void eraseDestinationList(size_t k);
+
+    virtual double getPacketCreatedTime() const;
+    virtual void setPacketCreatedTime(double packetCreatedTime);
+
+    virtual double getPropagationDelay() const;
+    virtual void setPropagationDelay(double propagationDelay);
+
+    virtual double getTransmissionDelay() const;
+    virtual void setTransmissionDelay(double transmissionDelay);
 
 
 public:

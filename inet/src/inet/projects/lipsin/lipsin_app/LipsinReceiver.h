@@ -16,6 +16,9 @@ using namespace omnetpp;
 namespace inet {
 class ReceiveRecorder{
 public:
+    double queueingDelay = 0; // queueing delay
+    double transmissionDelay = 0; // transmission delay
+    double propagationDelay = 0; // propagation delay
     double sumDelay = 0;
     double averageDelay = 0;
     int packetReceivedCount = 0;

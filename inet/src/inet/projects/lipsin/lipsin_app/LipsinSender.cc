@@ -377,6 +377,9 @@ namespace inet {
         // create lipsin Header
         const auto& lipsinHeader = makeShared<LipsinHeader>();
 
+        // set start time
+        lipsinHeader->setPacketCreatedTime(simTime().dbl());
+
         // set the packet type to indicate packet is (MUTLICAST | MULTIUNICAST | UNICAST | LSA)
         lipsinHeader->setPacketType(packetType);
 
@@ -419,7 +422,7 @@ namespace inet {
         // if transmission pattern equals to the TransmissionPattern::MULTICAST
         // we need to add the payload
         if((this->transmissionPattern == TransmissionPattern::MULTICAST) ||
-        (this->transmissionPattern == TransmissionPattern::MULTI_UNICAST)){
+        (this->transmissionPattern == TransmissionPattern::MULTI_UNICAST) || (this->transmissionPattern == TransmissionPattern::UNICAST)){
             addPayload(packet);
         }
 
@@ -447,6 +450,7 @@ namespace inet {
             std::vector<LinkInfo*> routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
             if(this->singleTimeEncapsulationCount == -1){
                 for(auto& link : routes){
+                    pathHeader->getSourceDecideLinkSetNonConst()->addLink(link);
                     realLidsBf->insert(link->getId());
                 }
             } else{

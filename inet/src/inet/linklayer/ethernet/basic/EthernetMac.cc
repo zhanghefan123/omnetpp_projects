@@ -16,17 +16,16 @@
 //
 
 #include "inet/linklayer/ethernet/basic/EthernetMac.h"
-
 #include "inet/common/ProtocolTag_m.h"
 #include "inet/common/Simsignals.h"
 #include "inet/linklayer/common/EtherType_m.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
-#include "inet/linklayer/ethernet/basic/EthernetEncapsulation.h"
 #include "inet/linklayer/ethernet/common/EthernetControlFrame_m.h"
 #include "inet/linklayer/ethernet/common/EthernetMacHeader_m.h"
 #include "inet/networklayer/common/NetworkInterface.h"
 #include "inet/physicallayer/wired/ethernet/EthernetSignal_m.h"
+#include "inet/projects/generic_tools/tags/TimeTag_m.h"
 
 namespace inet {
 
@@ -127,7 +126,6 @@ void EthernetMac::startFrameTransmission()
     }
     signal->encapsulate(frame);
     send(signal, physOutGate);
-
     scheduleAt(transmissionChannel->getTransmissionFinishTime(), endTxTimer);
     changeTransmissionState(TRANSMITTING_STATE);
 }
@@ -173,8 +171,10 @@ void EthernetMac::handleUpperPacket(Packet *packet)
 
     // store frame and possibly begin transmitting
     EV_DETAIL << "Frame " << packet << " arrived from higher layer, enqueueing\n";
-    txQueue->enqueuePacket(packet);
 
+
+
+    txQueue->enqueuePacket(packet);
     if (transmitState == TX_IDLE_STATE) {
         ASSERT(currentTxFrame == nullptr);
         if (!txQueue->isEmpty()) {

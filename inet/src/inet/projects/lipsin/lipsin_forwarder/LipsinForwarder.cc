@@ -15,6 +15,7 @@
 #include "inet/projects/lipsin/lipsin_table/LinkInfo.h"
 #include "inet/projects/lipsin/lipsin_table/LipsinRoutingTable.h"
 #include "inet/projects/lipsin/const_vars/LipsinConstVar.h"
+#include "SatToSat.h"
 
 namespace inet {
     Define_Module(LipsinForwarder);
@@ -393,8 +394,10 @@ namespace inet {
             if((totalForwardDirections == 0) && (!uploadToTheApplicationLayer)){
                 // get the global recorder
                 auto* pathHeader = const_cast<PathHeader*>(lipsinHeaderOld->getPathHeader());
-                int redundantForwardingHops = pathHeader->getActualLinkSet()->getLinkSetSize();
-                this->globalRecorder->redundantForwardCount += redundantForwardingHops;
+                int redundantForwardingHops = pathHeader->calculateRedundantForwarding();
+                std::cout << (*pathHeader);
+                std::cout << "redundant forwarding hops = " << redundantForwardingHops << std::endl;
+                this->globalRecorder->redundantForwardCount += pathHeader->calculateRedundantForwarding();
             }
 
             // if we don't need to pass the packet to the application layer
@@ -667,6 +670,23 @@ namespace inet {
             auto newPathHeader = new PathHeader(*(pathHeaderOld));
             newPathHeader->getActualLinkSet()->addLink(entry);
             lipsinHeaderNew->setPathHeader(newPathHeader);
+
+            // zhf add set propagation delay
+            // --------------------------------------------------------------------------------------------
+            int interfaceIndex = entry->getNetworkInterface()->getIndex();
+            cModule* satellite = this->getParentModule()->getParentModule();
+            cGate* correspondingGate = satellite->gate("ethg$o", interfaceIndex);
+            auto* channel = dynamic_cast<SatToSat*>(correspondingGate->getChannel());
+            channel->getDistance();
+            double propagationDelay = channel->getDelay().dbl() * 1000;
+            lipsinHeaderNew->setPropagationDelay(lipsinHeaderNew->getPropagationDelay() + propagationDelay);
+            // --------------------------------------------------------------------------------------------
+
+            // zhf add set transmission delay
+            // ---------------------------------------------------------------------------------------------
+            double transmissionDelay = 1036.0 * 8.0 / (10.0 * 1000.0);
+            lipsinHeaderNew->setTransmissionDelay(lipsinHeaderNew->getTransmissionDelay() + transmissionDelay);
+            // ---------------------------------------------------------------------------------------------
 
             // insert back the lipsin header
             newPacket->insertAtFront(lipsinHeaderNew);

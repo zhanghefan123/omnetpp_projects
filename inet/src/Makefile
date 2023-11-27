@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for $(LIB_PREFIX)INET
 #
 # This file was generated with the command:
-#  opp_makemake --make-so -f --deep -o INET -O out -pINET -I. -Xinet/applications/voipstream -Xinet/clock/base -Xinet/clock/common -Xinet/clock/model -Xinet/clock/oscillator -Xinet/emulation -Xinet/transportlayer/tcp_lwip -Xinet/transportlayer/tcp_nsc -Xinet/visualizer/osg
+#  opp_makemake --make-so -f --deep -o INET -O out -pINET -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites/headers -I. -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites -Xinet/applications/voipstream -Xinet/clock/base -Xinet/clock/common -Xinet/clock/model -Xinet/clock/oscillator -Xinet/emulation -Xinet/transportlayer/tcp_lwip -Xinet/transportlayer/tcp_nsc -Xinet/visualizer/osg
 #
 
 # Name of target to be created (-o option)
@@ -14,7 +14,7 @@ TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)
 TARGET_FILES = $(TARGET_DIR)/$(TARGET)
 
 # C++ include paths (with -I)
-INCLUDE_PATH = -I.
+INCLUDE_PATH = -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites/headers -I. -I/home/zhf/Projects/OmnetppProjects/Multilayer-satellites
 
 # Additional object and library files to link with
 EXTRA_OBJS =
@@ -1481,6 +1481,7 @@ OBJS = \
     $O/inet/projects/applications/zeusudpapp/request_m.o \
     $O/inet/projects/dtn_network/dtn_packets/EpidemicHeader_m.o \
     $O/inet/projects/dtn_network/dtn_packets/TimeRecorder_m.o \
+    $O/inet/projects/generic_tools/tags/TimeTag_m.o \
     $O/inet/projects/lipsin/lipsin_packets/BloomFilter_m.o \
     $O/inet/projects/lipsin/lipsin_packets/LinkSet_m.o \
     $O/inet/projects/lipsin/lipsin_packets/LipsinHeader_m.o \
@@ -1687,6 +1688,7 @@ MSGFILES = \
     inet/projects/applications/zeusudpapp/request.msg \
     inet/projects/dtn_network/dtn_packets/EpidemicHeader.msg \
     inet/projects/dtn_network/dtn_packets/TimeRecorder.msg \
+    inet/projects/generic_tools/tags/TimeTag.msg \
     inet/projects/lipsin/lipsin_packets/BloomFilter.msg \
     inet/projects/lipsin/lipsin_packets/LinkSet.msg \
     inet/projects/lipsin/lipsin_packets/LipsinHeader.msg \

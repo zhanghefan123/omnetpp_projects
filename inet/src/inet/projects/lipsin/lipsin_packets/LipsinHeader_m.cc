@@ -195,6 +195,9 @@ void LipsinHeader::copy(const LipsinHeader& other)
     for (size_t i = 0; i < destinationList_arraysize; i++) {
         this->destinationList[i] = other.destinationList[i];
     }
+    this->packetCreatedTime = other.packetCreatedTime;
+    this->propagationDelay = other.propagationDelay;
+    this->transmissionDelay = other.transmissionDelay;
 }
 
 void LipsinHeader::parsimPack(omnetpp::cCommBuffer *b) const
@@ -211,6 +214,9 @@ void LipsinHeader::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->intermediateNode);
     b->pack(destinationList_arraysize);
     doParsimArrayPacking(b,this->destinationList,destinationList_arraysize);
+    doParsimPacking(b,this->packetCreatedTime);
+    doParsimPacking(b,this->propagationDelay);
+    doParsimPacking(b,this->transmissionDelay);
 }
 
 void LipsinHeader::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -233,6 +239,9 @@ void LipsinHeader::parsimUnpack(omnetpp::cCommBuffer *b)
         this->destinationList = new int[destinationList_arraysize];
         doParsimArrayUnpacking(b,this->destinationList,destinationList_arraysize);
     }
+    doParsimUnpacking(b,this->packetCreatedTime);
+    doParsimUnpacking(b,this->propagationDelay);
+    doParsimUnpacking(b,this->transmissionDelay);
 }
 
 int LipsinHeader::getPacketType() const
@@ -404,6 +413,39 @@ void LipsinHeader::eraseDestinationList(size_t k)
     destinationList_arraysize = newSize;
 }
 
+double LipsinHeader::getPacketCreatedTime() const
+{
+    return this->packetCreatedTime;
+}
+
+void LipsinHeader::setPacketCreatedTime(double packetCreatedTime)
+{
+    handleChange();
+    this->packetCreatedTime = packetCreatedTime;
+}
+
+double LipsinHeader::getPropagationDelay() const
+{
+    return this->propagationDelay;
+}
+
+void LipsinHeader::setPropagationDelay(double propagationDelay)
+{
+    handleChange();
+    this->propagationDelay = propagationDelay;
+}
+
+double LipsinHeader::getTransmissionDelay() const
+{
+    return this->transmissionDelay;
+}
+
+void LipsinHeader::setTransmissionDelay(double transmissionDelay)
+{
+    handleChange();
+    this->transmissionDelay = transmissionDelay;
+}
+
 class LipsinHeaderDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -419,6 +461,9 @@ class LipsinHeaderDescriptor : public omnetpp::cClassDescriptor
         FIELD_source,
         FIELD_intermediateNode,
         FIELD_destinationList,
+        FIELD_packetCreatedTime,
+        FIELD_propagationDelay,
+        FIELD_transmissionDelay,
     };
   public:
     LipsinHeaderDescriptor();
@@ -485,7 +530,7 @@ const char *LipsinHeaderDescriptor::getProperty(const char *propertyName) const
 int LipsinHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 10+base->getFieldCount() : 10;
+    return base ? 13+base->getFieldCount() : 13;
 }
 
 unsigned int LipsinHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -507,8 +552,11 @@ unsigned int LipsinHeaderDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_source
         FD_ISEDITABLE,    // FIELD_intermediateNode
         FD_ISARRAY | FD_ISEDITABLE | FD_ISRESIZABLE,    // FIELD_destinationList
+        FD_ISEDITABLE,    // FIELD_packetCreatedTime
+        FD_ISEDITABLE,    // FIELD_propagationDelay
+        FD_ISEDITABLE,    // FIELD_transmissionDelay
     };
-    return (field >= 0 && field < 10) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 13) ? fieldTypeFlags[field] : 0;
 }
 
 const char *LipsinHeaderDescriptor::getFieldName(int field) const
@@ -530,8 +578,11 @@ const char *LipsinHeaderDescriptor::getFieldName(int field) const
         "source",
         "intermediateNode",
         "destinationList",
+        "packetCreatedTime",
+        "propagationDelay",
+        "transmissionDelay",
     };
-    return (field >= 0 && field < 10) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 13) ? fieldNames[field] : nullptr;
 }
 
 int LipsinHeaderDescriptor::findField(const char *fieldName) const
@@ -548,6 +599,9 @@ int LipsinHeaderDescriptor::findField(const char *fieldName) const
     if (strcmp(fieldName, "source") == 0) return baseIndex + 7;
     if (strcmp(fieldName, "intermediateNode") == 0) return baseIndex + 8;
     if (strcmp(fieldName, "destinationList") == 0) return baseIndex + 9;
+    if (strcmp(fieldName, "packetCreatedTime") == 0) return baseIndex + 10;
+    if (strcmp(fieldName, "propagationDelay") == 0) return baseIndex + 11;
+    if (strcmp(fieldName, "transmissionDelay") == 0) return baseIndex + 12;
     return base ? base->findField(fieldName) : -1;
 }
 
@@ -570,8 +624,11 @@ const char *LipsinHeaderDescriptor::getFieldTypeString(int field) const
         "string",    // FIELD_source
         "int",    // FIELD_intermediateNode
         "int",    // FIELD_destinationList
+        "double",    // FIELD_packetCreatedTime
+        "double",    // FIELD_propagationDelay
+        "double",    // FIELD_transmissionDelay
     };
-    return (field >= 0 && field < 10) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 13) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **LipsinHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -669,6 +726,9 @@ std::string LipsinHeaderDescriptor::getFieldValueAsString(omnetpp::any_ptr objec
         case FIELD_source: return oppstring2string(pp->getSource());
         case FIELD_intermediateNode: return long2string(pp->getIntermediateNode());
         case FIELD_destinationList: return long2string(pp->getDestinationList(i));
+        case FIELD_packetCreatedTime: return double2string(pp->getPacketCreatedTime());
+        case FIELD_propagationDelay: return double2string(pp->getPropagationDelay());
+        case FIELD_transmissionDelay: return double2string(pp->getTransmissionDelay());
         default: return "";
     }
 }
@@ -692,6 +752,9 @@ void LipsinHeaderDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int 
         case FIELD_source: pp->setSource((value)); break;
         case FIELD_intermediateNode: pp->setIntermediateNode(string2long(value)); break;
         case FIELD_destinationList: pp->setDestinationList(i,string2long(value)); break;
+        case FIELD_packetCreatedTime: pp->setPacketCreatedTime(string2double(value)); break;
+        case FIELD_propagationDelay: pp->setPropagationDelay(string2double(value)); break;
+        case FIELD_transmissionDelay: pp->setTransmissionDelay(string2double(value)); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'LipsinHeader'", field);
     }
 }
@@ -716,6 +779,9 @@ omnetpp::cValue LipsinHeaderDescriptor::getFieldValue(omnetpp::any_ptr object, i
         case FIELD_source: return pp->getSource();
         case FIELD_intermediateNode: return pp->getIntermediateNode();
         case FIELD_destinationList: return pp->getDestinationList(i);
+        case FIELD_packetCreatedTime: return pp->getPacketCreatedTime();
+        case FIELD_propagationDelay: return pp->getPropagationDelay();
+        case FIELD_transmissionDelay: return pp->getTransmissionDelay();
         default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'LipsinHeader' as cValue -- field index out of range?", field);
     }
 }
@@ -742,6 +808,9 @@ void LipsinHeaderDescriptor::setFieldValue(omnetpp::any_ptr object, int field, i
         case FIELD_source: pp->setSource(value.stringValue()); break;
         case FIELD_intermediateNode: pp->setIntermediateNode(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_destinationList: pp->setDestinationList(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_packetCreatedTime: pp->setPacketCreatedTime(value.doubleValue()); break;
+        case FIELD_propagationDelay: pp->setPropagationDelay(value.doubleValue()); break;
+        case FIELD_transmissionDelay: pp->setTransmissionDelay(value.doubleValue()); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'LipsinHeader'", field);
     }
 }

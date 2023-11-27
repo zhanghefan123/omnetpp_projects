@@ -16,7 +16,7 @@
 //
 
 #include "inet/queueing/queue/PacketQueue.h"
-
+#include "SatToSat.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/common/PacketEventTag.h"
 #include "inet/common/Simsignals.h"
@@ -126,6 +126,17 @@ Packet *PacketQueue::pullPacket(cGate *gate)
     else
         queue.pop();
     auto queueingTime = simTime() - packet->getArrivalTime();
+    // zhf add code
+    // -----------------------------------
+    /*
+    cModule* satellite = this->getParentModule()->getParentModule()->getParentModule();
+    int ethIndex = this->getParentModule()->getParentModule()->getIndex();
+    cGate* ethgOut = satellite->gate("ethg$o", ethIndex);
+    auto* channel = dynamic_cast<SatToSat*>(ethgOut->getChannel());
+    std::cout << "queueing Delay: " << queueingTime << std::endl;
+    std::cout << channel->getFullPath() << " delay: " << channel->getDelay() << std::endl;
+    */
+    // -----------------------------------
     auto packetEvent = new PacketQueuedEvent();
     packetEvent->setQueuePacketLength(getNumPackets());
     packetEvent->setQueueDataLength(getTotalLength());

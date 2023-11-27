@@ -13,18 +13,34 @@ namespace inet {
 
 class PathHeader {
 private:
-    LinkSet* actualLinkSet;
+    LinkSet* sourceDecideLinkSet = nullptr;
+    LinkSet* actualLinkSet = nullptr;
 public:
     PathHeader(){
+        this->sourceDecideLinkSet = new LinkSet();
         this->actualLinkSet = new LinkSet();
     }
-    ~PathHeader(){delete this->actualLinkSet;}
+
+    ~PathHeader(){
+        delete this->sourceDecideLinkSet;
+        delete this->actualLinkSet;
+    }
+
     PathHeader(const PathHeader& pathHeader){
         // call copy constructor of LinkSet
+        this->sourceDecideLinkSet = new LinkSet(*pathHeader.sourceDecideLinkSet);
         this->actualLinkSet = new LinkSet(*pathHeader.actualLinkSet);
     }
+
+    friend std::ostream& operator<<(std::ostream& os, const PathHeader& pathHeader);
+
+    int calculateRedundantForwarding() const;
+
 public:
-    LinkSet* getActualLinkSet();
+    LinkSet* getSourceDecideLinkSet() const;
+    LinkSet* getActualLinkSet() const;
+    LinkSet* getSourceDecideLinkSetNonConst();
+    LinkSet* getActualLinkSetNonConst();
 };
 
 } /* namespace inet */

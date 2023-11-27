@@ -72,34 +72,51 @@ namespace inet {
             if(this->recorder->packetReceivedCount == 0){
                 this->recorder->startTime = simTime().dbl();
             }
+            // get packet total delay
+            double packetTotalDelay = (simTime().dbl() - lipsinHeader->getPacketCreatedTime()) * 1000;
+            // get packet transmission delay
+            double packetTransmissionDelay = lipsinHeader->getTransmissionDelay();
+            // get packet propagation delay
+            double packetPropagationDelay = lipsinHeader->getPropagationDelay();
+            // get packet queueing delay
+            double packetQueueingDelay = packetTotalDelay - packetTransmissionDelay - packetPropagationDelay;
             // update total delay
-            this->recorder->sumDelay += simTime().dbl() - packet->getCreationTime().dbl();
-            // update average delay
-            this->recorder->averageDelay = this->recorder->sumDelay / this->recorder->packetReceivedCount;
+            this->recorder->sumDelay += packetTotalDelay;
+            // update transmission delay
+            this->recorder->transmissionDelay += packetTransmissionDelay;
+            // update propagation delay
+            this->recorder->propagationDelay += packetPropagationDelay;
+            // update queueing delay
+            this->recorder->queueingDelay += packetQueueingDelay;
             // update the receive num
             this->recorder->packetReceivedCount++;
+            // update average delay
+            this->recorder->averageDelay = (this->recorder->sumDelay / this->recorder->packetReceivedCount);
             // update the receive size
             this->recorder->totalReceivedSize += int(packet->getByteLength());
             // update the throughput
             this->recorder->throughput = this->recorder->totalReceivedSize * 8 /
                                          ((simTime().dbl() - this->recorder->startTime) * 1000 * 1000);
-        } else {
-            // do nothing
         }
     }
 
     /**
-     * finish and record some statistics
+     * @brief finish and record some statistics
      */
     void LipsinReceiver::finish(){
         std::stringstream ss;
         std::ofstream countFile;
         std::string outputFileName;
+        ss.setf(std::ios::fixed);
+        ss.precision(3);
         ss << "received packet count: " << this->recorder->packetReceivedCount << std::endl;
         ss << "received packet size: " << this->recorder->totalReceivedSize << " Bytes" << std::endl;
         ss << "throughput: " << this->recorder->throughput << " Mbps" << std::endl;
-        ss << "total delay: " << this->recorder->sumDelay * 1000<< " ms" << std::endl;
-        ss << "average delay: " << this->recorder->averageDelay *1000<< " ms" << std::endl;
+        ss << "average delay: " << this->recorder->averageDelay << " ms" << std::endl;
+        ss << "total delay: " << this->recorder->sumDelay<< " ms" << std::endl;
+        ss << "total propagation delay: " << this->recorder->propagationDelay << " ms" << std::endl;
+        ss << "total transmission delay: " << this->recorder->transmissionDelay << " ms" << std::endl;
+        ss << "total queueing delay: " << this->recorder->queueingDelay << " ms" << std::endl;
         outputFileName = this->getParentModule()->getFullName() + std::string("_receiver_statistic.txt");
         countFile.open(outputFileName, std::ios::out | std::ios::trunc);
         countFile.write(ss.str().c_str(), int(ss.str().length()));
