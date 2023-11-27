@@ -24,6 +24,8 @@ namespace inet {
     void LipsinGlobalRecorder::finish(){
         this->getGlobalInformation();
         std::stringstream ss;
+        ss.setf(std::ios::fixed);
+        ss.precision(3);
         std::ofstream globalRecorderFile;
         std::string outputFileName;
         cModule* channelController = this->getParentModule()->getSubmodule("channelController");
@@ -43,7 +45,8 @@ namespace inet {
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
             ss << "total received packet count: " << this->totalReceivedPackets << std::endl;
             ss << "avg throughput: " << this->avgLipsinThroughput << "Mbps" << std::endl;
-            ss << "avg delay: " << (this->totalLipsinAverageDelay / this->totalLipsinReceiver) * 1000 << "ms" << std::endl;
+            ss << "avg total delay: " << (this->avgLipsinTotalDelaySum / this->totalLipsinReceiver) << "ms" << std::endl;
+            ss << "avg queueing delay: " << (this->avgLipsinQueueingDelaySum / this->totalLipsinReceiver) << "ms" << std::endl;
             ss << "successful ratio: " << (double(this->totalReceivedPackets) / double(this->totalSendPackets)) * 100<< std::endl;
             ss << std::endl;
         }else{
@@ -110,7 +113,8 @@ namespace inet {
                     ReceiveRecorder* receiveRecorder = receiver->getReceiveRecorder();
                     this->totalReceivedPackets += receiveRecorder->packetReceivedCount;
                     this->totalLipsinThroughput += receiveRecorder->throughput;
-                    this->totalLipsinAverageDelay += receiveRecorder->averageDelay;
+                    this->avgLipsinTotalDelaySum += receiveRecorder->averageTotalDelay;
+                    this->avgLipsinQueueingDelaySum += receiveRecorder->averageQueueingDelay;
                     this->totalLipsinReceiver += 1;
                 }
                 // judge if the satellite module has sender

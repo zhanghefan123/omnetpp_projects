@@ -30,7 +30,8 @@ public:
     double avgLipsinThroughput = 0;
     double avgIpThroughput = 0;
 
-    double totalLipsinAverageDelay = 0;
+    double avgLipsinTotalDelaySum = 0;
+    double avgLipsinQueueingDelaySum = 0;
     double totalIpAverageDelay = 0;
 protected:
     void finish() override;

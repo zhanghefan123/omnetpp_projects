@@ -20,7 +20,8 @@ public:
     double transmissionDelay = 0; // transmission delay
     double propagationDelay = 0; // propagation delay
     double sumDelay = 0;
-    double averageDelay = 0;
+    double averageTotalDelay = 0;
+    double averageQueueingDelay = 0;
     int packetReceivedCount = 0;
     int totalReceivedSize = 0;
     double throughput = 0;
