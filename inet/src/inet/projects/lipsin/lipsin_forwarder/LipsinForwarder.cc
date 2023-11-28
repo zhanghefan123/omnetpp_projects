@@ -271,7 +271,8 @@ namespace inet {
             auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
             // second we need to traverse the physical lipsin link table and forward the packet
             // -----------------------------------------------------------------------------------------
-            std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+            // std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+            std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
             std::set<int> dontForwardInterfaceIds = {};
             traverseAndForwardPackets(pltEntries, -1, lipsinHeaderOld,
                                       const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
@@ -416,7 +417,8 @@ namespace inet {
                     auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
                     // second we need to traverse the physical lipsin link table and forward the packet
                     // -----------------------------------------------------------------------------------------
-                    std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+                    // std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+                    std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
                     std::set<int> dontForwardInterfaceIds = {};
                     totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
                                                                         const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
@@ -723,7 +725,7 @@ namespace inet {
             std::vector<LinkInfo*> sourceDecide = pathHeaderOld->getSourceDecideLinkSet()->getInnerVector(); // 源决定的路径
             bool wrongDirection = lipsinHeaderNew->getWrongDirection(); // 是否当前已经在错误的方向上
             if(wrongDirection || (sourceDecide.size() < (currentLinkSize+1)) || (sourceDecide[currentLinkSize]->getId() != entry->getId())){
-               generateRedundantForwarding = LipsinTools::whetherToForward(0.29);
+               generateRedundantForwarding = LipsinTools::whetherToForward(0.01);
             }
             if(generateRedundantForwarding){
                 // 如果是错误的方向 || 或者是实际转发的路径已经超过源决定的路径 || 或者是当前跳决定的不一致

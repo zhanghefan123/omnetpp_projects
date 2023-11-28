@@ -28,6 +28,7 @@ public:
     void addEntry(LinkInfo* entry);
     void removeEntry(int linkId);
     std::vector<LinkInfo*> findOutputLinkIdentifiers(BloomFilter *bloomFilter);
+    std::vector<LinkInfo*> findAllOutputLinkIdentifiers();
     int getLinkNum() const { return int(list.size()); }
     std::vector<LinkInfo*> getLinkInfoVectorByInterface(NetworkInterface* interface, LinkType linkType);
     void removeLinkInfosByInterface(NetworkInterface* interface);

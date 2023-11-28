@@ -73,4 +73,8 @@ namespace inet {
         }
         return outputLinkIdentifiers;
     }
+
+    std::vector<LinkInfo*> LipsinLinkTable::findAllOutputLinkIdentifiers(){
+        return list;
+    }
 } /* namespace inet */
