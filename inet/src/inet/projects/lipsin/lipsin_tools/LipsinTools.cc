@@ -9,6 +9,7 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <random>
 #include "inet/projects/lipsin/lipsin_packets/LipsinHeader_m.h"
 #include "inet/projects/lipsin/const_vars/LipsinConstVar.h"
 namespace inet {
@@ -142,4 +143,17 @@ namespace inet {
         }
         return tokens;
     }
+
+    bool LipsinTools::whetherToForward(double fpr) {
+        // generate random number
+        int random = distribution(engine);
+        if(random > (fpr * 100)){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    std::default_random_engine LipsinTools::engine = std::default_random_engine(); // NOLINT
+    std::uniform_int_distribution<int> LipsinTools::distribution = std::uniform_int_distribution<int>(0,100);
 } /* namespace inet */

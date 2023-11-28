@@ -717,20 +717,26 @@ namespace inet {
             BloomFilter* newVirtualLidsBloomFilter = lipsinHeaderOld->getVirtualLidsBf()->getCopy();
             lipsinHeaderNew->setVirtualLidsBf(newVirtualLidsBloomFilter);
 
+            // update redundant forward count
+            bool generateRedundantForwarding = false;
+            int currentLinkSize = pathHeaderOld->getActualLinkSet()->getLinkSetSize(); // 当前走了几条链路
+            std::vector<LinkInfo*> sourceDecide = pathHeaderOld->getSourceDecideLinkSet()->getInnerVector(); // 源决定的路径
+            bool wrongDirection = lipsinHeaderNew->getWrongDirection(); // 是否当前已经在错误的方向上
+            if(wrongDirection || (sourceDecide.size() < (currentLinkSize+1)) || (sourceDecide[currentLinkSize]->getId() != entry->getId())){
+               generateRedundantForwarding = LipsinTools::whetherToForward(0.29);
+            }
+            if(generateRedundantForwarding){
+                // 如果是错误的方向 || 或者是实际转发的路径已经超过源决定的路径 || 或者是当前跳决定的不一致
+                // 那么就说明发生了冗余转发
+                // 生成 0-1 的均匀分布
+                globalRecorder->redundantForwardCount += 1;
+                lipsinHeaderNew->setWrongDirection(true);
+            }
+
             // copy the old pathe header and add the forward link to create the new path header
             auto newPathHeader = new PathHeader(*(pathHeaderOld));
             newPathHeader->getActualLinkSet()->addLink(entry);
             lipsinHeaderNew->setPathHeader(newPathHeader);
-
-
-            // update redundant forward count
-            int currentHop = newPathHeader->getActualLinkSet()->getLinkSetSize();
-            std::vector<LinkInfo*> sourceDecide = newPathHeader->getSourceDecideLinkSet()->getInnerVector();
-            bool wrongDirection = lipsinHeaderNew->getWrongDirection();
-            if(wrongDirection || (sourceDecide.size() < currentHop) || (sourceDecide[currentHop-1]->getId() != entry->getId())){
-                globalRecorder->redundantForwardCount += 1;
-                lipsinHeaderNew->setWrongDirection(true);
-            }
 
             // zhf add set propagation delay
             // --------------------------------------------------------------------------------------------
