@@ -10,6 +10,7 @@
 
 #include "inet/common/InitStages.h" // for NUM_INIT_STAGES
 #include "inet/common/packet/Packet.h" // for Packet
+#include "inet/projects/lipsin/lipsin_table/LinkInfoTable.h"
 
 using namespace omnetpp;
 namespace inet {
@@ -28,6 +29,7 @@ namespace inet {
 
     class SendRecorder{ // NOLINT
     public:
+        double sumFalsePositiveRate = 0;
         double sumBitSetRate = 0;
         double sumDelay;
         double averageDelay;
@@ -36,10 +38,15 @@ namespace inet {
         int totalReceivedSize = 0;
         double throughput = 0;
         double transmissionRatio = 0;
+        std::vector<int> storedBloomFilterSeed;
     };
 
 class LipsinSender:public omnetpp::cSimpleModule{
 private:
+    bool emptyStoredBloomFilterSize = false;
+
+    LinkInfoTable* linkInfoTable;
+
     // transmission Pattern
     TransmissionPattern transmissionPattern;
 
@@ -71,6 +78,8 @@ private:
     // timer
     cMessage* sendTimer;
 
+    // availabel bloom filter seed
+    std::vector<int> availabel_bloom_filter_seed;
 public:
     std::map<std::string, std::vector<int>*> multicastGroups;
 
@@ -101,6 +110,9 @@ public:
     TransmissionPattern getTransmissionPattern(){return this->transmissionPattern;}
     int getDestinationSize(){return int(this->destinationSatelliteIds.size());}
     std::string getTransmissionPatternStr();
+
+    void setLinkInfoTable();
+    void loadAvailableBloomFilterSeed();
 };
 
 } /* namespace inet */

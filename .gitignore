@@ -6,6 +6,7 @@ Multilayer-satellites/out/
 Multilayer-satellites/projects/
 .metadata/
 statistic/
+find_seeds/
 *.sca
 *.txt
 *.log
