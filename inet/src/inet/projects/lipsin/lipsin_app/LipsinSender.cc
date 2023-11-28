@@ -16,6 +16,7 @@
 #include "inet/projects/lipsin/lipsin_packets/LipsinHeader_m.h"
 #include "inet/projects/lipsin/const_vars/LipsinConstVar.h"
 #include "inet/projects/lipsin/lipsin_operator_reload/LipsinOperatorReload.h"
+#include "inet/projects/lipsin/lipsin_optimal_encoding/lipsin_optimal_encoding.h"
 namespace inet {
     Define_Module(LipsinSender);
 
@@ -131,6 +132,7 @@ namespace inet {
             this->numberOfHashFunctions = int(this->par("numberOfHashFunctions").intValue());
             this->sendTimer = new cMessage("sendTimer");
             this->singleTimeEncapsulationCount = int(this->getParentModule()->par("singleTimeEncapsulationCount").intValue());
+            this->enableOptimalEncoding = this->par("enableOptimalEncoding").boolValue();
             this->loadAvailableBloomFilterSeed();
             this->setLinkInfoTable();
             this->setTransmissionPattern();
@@ -516,14 +518,15 @@ namespace inet {
             }
         }
 
-        // output routes
-//        for(auto item : routes){
-//            std::cout << item->getId() << "->";
-//        }
-//        std::cout << std::endl;
+        // calculate encoding nodes
+        if(enableOptimalEncoding){
+            std::vector<int> encodingNodes = {};
+            encodingNodes = OptimalEncoding::calculateEncodingNodes(this->bloomFilterSize * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
+            for(auto encodingNode : encodingNodes){
+                pathHeader->encodingPointVector.push_back(encodingNode);
+            }
+        }
 
-        // output size
-        // std::cout << "size: " << linkInfoTableByIdMap.size() << std::endl;
         falsePositiveRate = double(falsePositives) / double(linkInfoTableByIdMap.size());
         this->recorder->sumFalsePositiveRate += falsePositiveRate;
     }

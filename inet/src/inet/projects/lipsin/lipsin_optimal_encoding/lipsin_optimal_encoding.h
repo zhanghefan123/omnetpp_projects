@@ -7,7 +7,7 @@
 #include <vector>
 #include <ostream>
 namespace inet{
-    class BloomFilter{
+    class OptimalEncoding{
     public:
         // calculate the f_co overhead
         static double calculateFullOverhead(int C,double M, int k, int N);

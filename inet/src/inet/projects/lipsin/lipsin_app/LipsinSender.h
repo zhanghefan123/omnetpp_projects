@@ -43,6 +43,7 @@ namespace inet {
 
 class LipsinSender:public omnetpp::cSimpleModule{
 private:
+    bool enableOptimalEncoding = false;
     bool emptyStoredBloomFilterSize = false;
 
     LinkInfoTable* linkInfoTable;

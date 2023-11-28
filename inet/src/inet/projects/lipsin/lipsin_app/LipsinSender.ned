@@ -33,7 +33,8 @@ simple LipsinSender{
 	    // the packet length
 	    int packetLength = default(1000);
 	    
-
+        // should enable optimal encoding
+        bool enableOptimalEncoding = default(false);
 	   
 	 gates:
 	    input appIn;

@@ -11,13 +11,13 @@ using namespace std;
 namespace inet{
 
 // calculateFullOverhead 计算总的开销的实现
-    double BloomFilter::calculateFullOverhead(int C,double M, int k, int N) {
-        return BloomFilter::calculateIncorrectOverhead(C, M, k, N) + BloomFilter::calculateCorrectOverhead(M, N);
+    double OptimalEncoding::calculateFullOverhead(int C,double M, int k, int N) {
+        return OptimalEncoding::calculateIncorrectOverhead(C, M, k, N) + OptimalEncoding::calculateCorrectOverhead(M, N);
     }
 
 // calculateIncorrectOverhead 计算错误转发开销的实现
-    double BloomFilter::calculateIncorrectOverhead(int C, double M, int k, int N) {
-        double fpr = BloomFilter::calculateFPR(M, k, N);
+    double OptimalEncoding::calculateIncorrectOverhead(int C, double M, int k, int N) {
+        double fpr = OptimalEncoding::calculateFPR(M, k, N);
         if (fpr >= 1.0/3.0) {
             // 返回无穷大
             return 1.0 / 0.0;
@@ -27,12 +27,12 @@ namespace inet{
     }
 
 // calculateCorrectOverhead 计算正确转发开销的实现
-    double BloomFilter::calculateCorrectOverhead(double M, int N) {
+    double OptimalEncoding::calculateCorrectOverhead(double M, int N) {
         return M*N;
     }
 
 // calculateFPR 进行fpr假正率的计算。
-    double BloomFilter::calculateFPR(double M, int K, int N) {
+    double OptimalEncoding::calculateFPR(double M, int K, int N) {
         // calculate the false positive rate of the bloom filter
         // 计算公式：fpr = [1-(1-1/M)^(KN)]^K
         double result = pow((1 - pow((1 - 1.0 / M), K * N)),K);
@@ -40,7 +40,7 @@ namespace inet{
     }
 
 // findMinimumOverheadWithOptimalM 使用遍历的方式从一个指定的范围之中找到最优的M
-    double BloomFilter::findMinimumOverheadWithOptimalM(int C, int K, int N) {
+    double OptimalEncoding::findMinimumOverheadWithOptimalM(int C, int K, int N) {
         int optimizedM = -1;
         // 这是最小的开销：首先给它一个无穷大，让他能够被替换调
         double minimum_overhead = 1.0 / 0.0;
@@ -57,7 +57,7 @@ namespace inet{
         return minimum_overhead;
     }
 
-    std::vector<int> BloomFilter::calculateEncodingNodes(int C, int k ,int N, double B, double t){
+    std::vector<int> OptimalEncoding::calculateEncodingNodes(int C, int k ,int N, double B, double t){
         std::vector<int> encodingNodes;
 
         // 创建一个一维数组用来进行状态的存储
@@ -82,7 +82,7 @@ namespace inet{
             // 遍历i状态的所有的可能的前驱状态
             for (int j = 0; j < i; j++) {
                 // 计算当前状态的代价 - 以时间作为单位。
-                double cost_in_time = BloomFilter::findMinimumOverheadWithOptimalM(C, k, i - j)/B + t + H[j];
+                double cost_in_time = OptimalEncoding::findMinimumOverheadWithOptimalM(C, k, i - j)/B + t + H[j];
                 // 如果当前状态的代价小于之前的代价, 则进行更新的操作
                 if (cost_in_time < H[i]) {
                     H[i] = cost_in_time; // 更新当前的开销的最小值
@@ -134,7 +134,7 @@ namespace inet{
     }
 
 // calculateEncodingStrategyVector 计算重新封装策略
-    std::vector<double> BloomFilter::calculateEncodingStrategyVector(int C, int k, int N, double B, double t) {
+    std::vector<double> OptimalEncoding::calculateEncodingStrategyVector(int C, int k, int N, double B, double t) {
 
         // 创建一个一维数组用来进行状态的存储
         auto *H = new double[N+1]; // 总共有N+1个状态, H(i)代表i跳的最小代价
@@ -158,7 +158,7 @@ namespace inet{
             // 遍历i状态的所有的可能的前驱状态
             for (int j = 0; j < i; j++) {
                 // 计算当前状态的代价 - 以时间作为单位。
-                double cost_in_time = BloomFilter::findMinimumOverheadWithOptimalM(C, k, i - j)/B + t + H[j];
+                double cost_in_time = OptimalEncoding::findMinimumOverheadWithOptimalM(C, k, i - j)/B + t + H[j];
                 // 如果当前状态的代价小于之前的代价, 则进行更新的操作
                 if (cost_in_time < H[i]) {
                     H[i] = cost_in_time; // 更新当前的开销的最小值
@@ -204,7 +204,7 @@ namespace inet{
         return result;
     }
 
-    std::ostream &BloomFilter::setPrecision(std::ostream &os, int n) {
+    std::ostream &OptimalEncoding::setPrecision(std::ostream &os, int n) {
         os << std::fixed << std::setprecision(n);
         return os;
     }
