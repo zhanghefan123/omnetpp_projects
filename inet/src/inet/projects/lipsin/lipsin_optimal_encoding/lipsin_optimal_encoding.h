@@ -5,6 +5,7 @@
 #ifndef DELAYTOLERANTNETWORK_LIPSIN_OPTIMAL_ENCODING_H
 #define DELAYTOLERANTNETWORK_LIPSIN_OPTIMAL_ENCODING_H
 #include <vector>
+#include <ostream>
 namespace inet{
     class BloomFilter{
     public:

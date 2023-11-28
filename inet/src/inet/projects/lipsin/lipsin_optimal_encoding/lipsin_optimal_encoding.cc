@@ -6,6 +6,7 @@
 #include <iostream> // 这里是iostream用来进行输入输出的头文件
 #include <vector>  // 这里准备用vector进行返回值的存储的头文件
 #include <fstream> // 这里直接使用fstream进行文件的写入的头文件
+#include <iomanip>
 using namespace std;
 namespace inet{
 

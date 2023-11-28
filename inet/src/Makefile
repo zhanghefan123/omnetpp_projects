@@ -922,6 +922,7 @@ OBJS = \
     $O/inet/projects/lipsin/lipsin_neighbor_state/LipsinNeighborStateOneWay.o \
     $O/inet/projects/lipsin/lipsin_neighbor_state/LipsinNeighborStateTwoWay.o \
     $O/inet/projects/lipsin/lipsin_operator_reload/LipsinOperatorReload.o \
+    $O/inet/projects/lipsin/lipsin_optimal_encoding/lipsin_optimal_encoding.o \
     $O/inet/projects/lipsin/lipsin_overhead_encapsulate/LipsinOverheadCalculation.o \
     $O/inet/projects/lipsin/lipsin_packets/BloomFilter.o \
     $O/inet/projects/lipsin/lipsin_packets/LinkSet.o \
