@@ -271,8 +271,8 @@ namespace inet {
             auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
             // second we need to traverse the physical lipsin link table and forward the packet
             // -----------------------------------------------------------------------------------------
-            // std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
-            std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
+            std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+            // std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
             std::set<int> dontForwardInterfaceIds = {};
             traverseAndForwardPackets(pltEntries, -1, lipsinHeaderOld,
                                       const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
@@ -310,17 +310,17 @@ namespace inet {
 
         // get current hop
         int hopCount = lipsinHeaderOld->getHopCount();
-        if(hopCount >= 10){
-            packet->insertAtFront(lipsinHeaderOld);
-            // we need to delete the packet
-            LipsinTools::delete_lipsin_packet(packet);
-            return;
-        } else {
+//        if(hopCount >= 10){
+//            packet->insertAtFront(lipsinHeaderOld);
+//            // we need to delete the packet
+//            LipsinTools::delete_lipsin_packet(packet);
+//            return;
+//        } else {
             lipsinHeaderOld->setHopCount(hopCount+1);
             if((hopCount+1) > this->recorder->maxForwardCount){
                 this->recorder->maxForwardCount = hopCount + 1;
             }
-        }
+//        }
 
         // record the maximum hop count
         /*
@@ -417,8 +417,8 @@ namespace inet {
                     auto* pathHeaderOld = lipsinHeaderOld->getPathHeader();
                     // second we need to traverse the physical lipsin link table and forward the packet
                     // -----------------------------------------------------------------------------------------
-                    // std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
-                    std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
+                    std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+                    // std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
                     std::set<int> dontForwardInterfaceIds = {};
                     totalForwardDirections += traverseAndForwardPackets(pltEntries, incomingInterfaceId, lipsinHeaderOld,
                                                                         const_cast<PathHeader *>(pathHeaderOld), packet, dontForwardInterfaceIds);
@@ -720,18 +720,37 @@ namespace inet {
             lipsinHeaderNew->setVirtualLidsBf(newVirtualLidsBloomFilter);
 
             // update redundant forward count
+            /*
+            bool correctForwarding = false;
             bool generateRedundantForwarding = false;
             int currentLinkSize = pathHeaderOld->getActualLinkSet()->getLinkSetSize(); // 当前走了几条链路
             std::vector<LinkInfo*> sourceDecide = pathHeaderOld->getSourceDecideLinkSet()->getInnerVector(); // 源决定的路径
             bool wrongDirection = lipsinHeaderNew->getWrongDirection(); // 是否当前已经在错误的方向上
             if(wrongDirection || (sourceDecide.size() < (currentLinkSize+1)) || (sourceDecide[currentLinkSize]->getId() != entry->getId())){
-               generateRedundantForwarding = LipsinTools::whetherToForward(0.01);
+               generateRedundantForwarding = LipsinTools::whetherToForward(0.29877);
+            } else {
+                correctForwarding = true;
             }
             if(generateRedundantForwarding){
                 // 如果是错误的方向 || 或者是实际转发的路径已经超过源决定的路径 || 或者是当前跳决定的不一致
                 // 那么就说明发生了冗余转发
                 // 生成 0-1 的均匀分布
                 globalRecorder->redundantForwardCount += 1;
+                lipsinHeaderNew->setWrongDirection(true);
+            }
+            // if not correct fowarding and not redundant forwarding
+            if(!(correctForwarding || generateRedundantForwarding)){
+                delete newPacket;
+                continue;
+            }
+            */
+
+            // update redundant forward count
+            int currentLinkSize = pathHeaderOld->getActualLinkSet()->getLinkSetSize(); // 当前走了几条链路
+            std::vector<LinkInfo*> sourceDecide = pathHeaderOld->getSourceDecideLinkSet()->getInnerVector(); // 源决定的路径
+            bool wrongDirection = lipsinHeaderNew->getWrongDirection(); // 是否当前已经在错误的方向上
+            if(wrongDirection || (sourceDecide.size() < (currentLinkSize+1)) || (sourceDecide[currentLinkSize]->getId() != entry->getId())){
+                this->recorder->redundantForwardCount+=1;
                 lipsinHeaderNew->setWrongDirection(true);
             }
 

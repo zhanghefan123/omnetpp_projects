@@ -51,6 +51,7 @@ namespace inet {
             ss << "successful ratio: " << (double(this->totalReceivedPackets) / double(this->totalSendPackets)) * 100<< std::endl;
             ss << "avg bit set rate: " << this->sumBitSetRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
             ss << "max forward count: " << this->maxForwardCount << std::endl;
+            ss << "avg false positive rate: " << this->sumFalsePositiveRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
             ss << std::endl;
         }else{
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
@@ -60,10 +61,10 @@ namespace inet {
             ss << "successful ratio: " << (double(this->totalReceivedPackets) / double(this->totalSendPackets)) * 100<< std::endl;
             ss << std::endl;
         }
-
         outputFileName = this->getParentModule()->getFullName() + std::string("_global_statistic.txt");
         globalRecorderFile.open(outputFileName, std::ios::out | std::ios::app);
         globalRecorderFile.write(ss.str().c_str(), int(ss.str().length()));
+        globalRecorderFile.close();
     }
 
     void LipsinGlobalRecorder::initialize(int stage){
@@ -133,7 +134,9 @@ namespace inet {
                         this->totalSendPackets += (sendRecorder->packetSentCount);
                     }
                     this->sumBitSetRate += sendRecorder->sumBitSetRate;
+                    this->sumFalsePositiveRate += sendRecorder->sumFalsePositiveRate;
                 }
+
             }
             this->avgLipsinThroughput = this->totalLipsinThroughput / double(this->totalLipsinReceiver);
         }

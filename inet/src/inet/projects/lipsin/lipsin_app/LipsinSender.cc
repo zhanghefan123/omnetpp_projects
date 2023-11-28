@@ -54,6 +54,7 @@ namespace inet {
             std::string outputFileName = this->getParentModule()->getFullName() + std::string("_sender") + std::string("_statistic.txt");
             countFile.open(outputFileName, std::ios::out | std::ios::trunc);
             countFile.write(ss.str().c_str(), int(ss.str().length()));
+            countFile.close();
         } else if ((this->transmissionPattern == TransmissionPattern::MULTI_UNICAST) ||
                    (this->transmissionPattern == TransmissionPattern::MULTICAST)) {
             // we should record the packet we send
@@ -130,6 +131,8 @@ namespace inet {
             this->numberOfHashFunctions = int(this->par("numberOfHashFunctions").intValue());
             this->sendTimer = new cMessage("sendTimer");
             this->singleTimeEncapsulationCount = int(this->getParentModule()->par("singleTimeEncapsulationCount").intValue());
+            this->loadAvailableBloomFilterSeed();
+            this->setLinkInfoTable();
             this->setTransmissionPattern();
             this->setMulticastPattern();
             this->registerLipsinSenderProtocols();
@@ -222,7 +225,12 @@ namespace inet {
                 for(auto singlePacket : generatedPackets){
                     this->send(singlePacket, "appOut");
                     this->recorder->packetSentCount += 1;
-                    this->currentBloomFilterSeed += 100;
+                    if(this->emptyStoredBloomFilterSize){
+                        this->currentBloomFilterSeed += 100;
+                    } else {
+                        this->currentBloomFilterSeed = this->recorder->storedBloomFilterSeed[(this->recorder->packetSentCount) % this->recorder->storedBloomFilterSeed.size()];
+                        // std::cout << this->currentBloomFilterSeed << std::endl;
+                    }
                 }
                this->scheduleAt(currentTime + this->sendInterval, this->sendTimer);
             }
@@ -433,11 +441,14 @@ namespace inet {
         auto* lipsinRoutingTable = dynamic_cast<LipsinRoutingTable*>(lipsinRoutingTableCmodule);
         // ---------------------------------------------------------------------------------------------
 
+        // store routes
+        std::vector<LinkInfo*> routes;
+
         // get the corresponding routes & insert the elements into the table
         // ---------------------------------------------------------------------------------------------
         // insert according too the current transmission pattern
         if(this->transmissionPattern == TransmissionPattern::MULTICAST){
-            std::vector<LinkInfo*> routes = lipsinRoutingTable->getMulticastRoutesByDestIds(destIds);
+            routes = lipsinRoutingTable->getMulticastRoutesByDestIds(destIds);
             // traverse the link info and insert them
             for(auto& link: routes){
                 realLidsBf->insert(link->getId());
@@ -448,7 +459,7 @@ namespace inet {
                 throw cRuntimeError("in END-TO-END or MULTI-UNICAST transmission pattern (destIds has only one id)"); // NOLINT
             }
             int singleDestinationId = destIds[0];
-            std::vector<LinkInfo*> routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
+            routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
             if(this->singleTimeEncapsulationCount == -1){
                 for(auto& link : routes){
                     pathHeader->getSourceDecideLinkSetNonConst()->addLink(link);
@@ -482,6 +493,39 @@ namespace inet {
         // print the bit set rate of this packet
         double bitSetRate = realLidsBf->getBitSetRate();
         this->recorder->sumBitSetRate += bitSetRate;
+
+        // calculate real fpr
+        auto linkInfoTableByIdMap = this->linkInfoTable->getLinkInfoTableById();
+        int falsePositives = 0;
+        double falsePositiveRate = 0;
+        for(auto single_pair : linkInfoTableByIdMap){
+            int tempLinkId = single_pair.second->getId();
+            bool inserted = false;
+            bool isFalsePositive = false;
+            for(auto linkInfo  : routes){
+                if(tempLinkId == linkInfo->getId()){
+                    inserted = true;
+                    break;
+                }
+            }
+            if(!inserted){
+                isFalsePositive = realLidsBf->query(tempLinkId);
+                if(isFalsePositive){
+                    falsePositives++;
+                }
+            }
+        }
+
+        // output routes
+//        for(auto item : routes){
+//            std::cout << item->getId() << "->";
+//        }
+//        std::cout << std::endl;
+
+        // output size
+        // std::cout << "size: " << linkInfoTableByIdMap.size() << std::endl;
+        falsePositiveRate = double(falsePositives) / double(linkInfoTableByIdMap.size());
+        this->recorder->sumFalsePositiveRate += falsePositiveRate;
     }
 
     /**
@@ -524,6 +568,34 @@ namespace inet {
             ss << " Source Encoding";
         }
         return ss.str();
+    }
+
+    void LipsinSender::setLinkInfoTable() {
+        this->linkInfoTable = dynamic_cast<LinkInfoTable*>(this->getParentModule()->getSubmodule("linkInfoTable"));
+    }
+
+    void LipsinSender::loadAvailableBloomFilterSeed() {
+        std::string line;
+        std::ifstream file;
+        std::string fileName = "bloom_filter_seed.txt";
+        if(access(fileName.c_str(), 0) == -1){
+            emptyStoredBloomFilterSize = true;
+            return;
+        }
+        // 读取文件
+        file.open(fileName, std::ios::in);
+        while(std::getline(file, line)) {
+            std::vector<std::string> lineSplit = LipsinTools::splitString(line, ',');
+            for(const auto& item : lineSplit){
+                this->recorder->storedBloomFilterSeed.push_back(std::atoi(item.c_str()));
+            }
+        }
+        for(auto item : this->recorder->storedBloomFilterSeed){
+            std::cout << item << ",";
+        }
+
+        std::cout << std::endl;
+        file.close();
     }
 
 } /* namespace inet */
