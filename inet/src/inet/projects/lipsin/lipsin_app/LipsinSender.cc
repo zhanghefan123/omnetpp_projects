@@ -462,15 +462,26 @@ namespace inet {
             }
             int singleDestinationId = destIds[0];
             routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
-            if(this->singleTimeEncapsulationCount == -1){
-                for(auto& link : routes){
-                    pathHeader->getSourceDecideLinkSetNonConst()->addLink(link);
-                    realLidsBf->insert(link->getId());
+
+            // --------------------------optimal-encoding----------------------------------
+            // calculate encoding nodes
+            if(enableOptimalEncoding){
+                std::deque<std::pair<int,int>> nextIntermediateNodeAndHops = {};
+                // 1 0 0 0 1 0 0 0 1 (1,5) 1 encpasulate 4 identifiers
+                nextIntermediateNodeAndHops = OptimalEncoding::calculateEncodingNodes(this->bloomFilterSize * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
+                // pop out the first one
+                std::pair<int,int> firstPair = nextIntermediateNodeAndHops.front();
+                nextIntermediateNodeAndHops.pop_front();
+                int nextIntermediateNode = firstPair.first;
+                int hops = firstPair.second;
+                while(!nextIntermediateNodeAndHops.empty()){
+                    std::pair<int,int> nextPair = nextIntermediateNodeAndHops.front();
+                    nextIntermediateNodeAndHops.pop_front();
+                    pathHeader->encodingPointVector.push_back(nextPair);
                 }
-            } else{
                 int i;
                 for(i = 0; i < routes.size() ;i++){
-                    if(i < this->singleTimeEncapsulationCount){
+                    if(i < hops){
                         realLidsBf->insert(routes[i]->getId());
                     } else {
                         break;
@@ -481,9 +492,16 @@ namespace inet {
                     // set the intermediate node to negative
                     lipsinHeader->setIntermediateNode(-1);
                 } else {
-                    lipsinHeader->setIntermediateNode(routes[i]->getSrc());
+                    // lipsinHeader->setIntermediateNode(routes[i]->getSrc());
+                    lipsinHeader->setIntermediateNode(nextIntermediateNode);
+                }
+            } else {
+                for(auto& link : routes){
+                    pathHeader->getSourceDecideLinkSetNonConst()->addLink(link);
+                    realLidsBf->insert(link->getId());
                 }
             }
+            // --------------------------optimal-encoding----------------------------------
         }
         // ---------------------------------------------------------------------------------------------
 
@@ -515,15 +533,6 @@ namespace inet {
                 if(isFalsePositive){
                     falsePositives++;
                 }
-            }
-        }
-
-        // calculate encoding nodes
-        if(enableOptimalEncoding){
-            std::vector<int> encodingNodes = {};
-            encodingNodes = OptimalEncoding::calculateEncodingNodes(this->bloomFilterSize * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
-            for(auto encodingNode : encodingNodes){
-                pathHeader->encodingPointVector.push_back(encodingNode);
             }
         }
 

@@ -7,6 +7,7 @@
 #include <vector>  // 这里准备用vector进行返回值的存储的头文件
 #include <fstream> // 这里直接使用fstream进行文件的写入的头文件
 #include <iomanip>
+#include <deque>
 using namespace std;
 namespace inet{
 
@@ -57,8 +58,8 @@ namespace inet{
         return minimum_overhead;
     }
 
-    std::vector<int> OptimalEncoding::calculateEncodingNodes(int C, int k ,int N, double B, double t){
-        std::vector<int> encodingNodes;
+    deque<std::pair<int,int>> OptimalEncoding::calculateEncodingNodes(int C, int k ,int N, double B, double t){
+        deque<std::pair<int,int>> nextIntermediateNodeAndEncodingHops;
 
         // 创建一个一维数组用来进行状态的存储
         auto *H = new double[N+1]; // 总共有N+1个状态, H(i)代表i跳的最小代价
@@ -111,14 +112,17 @@ namespace inet{
 
         // 将x_star打印出来 1 0 0 0 1 0 0 0 1
         std::cout << "x_star:";
+        int previousEncapsulateNode = 1;
+        int encapsulateCount = 0;
         for (int i = 1; i < N+2; i++) {
             if((x_star[i] == 1) && (i != 1) && (i!=(N+1)))
             {
-                encodingNodes.push_back(i);
+                encapsulateCount = i - previousEncapsulateNode;
+                auto pair = make_pair(i, encapsulateCount);
+                nextIntermediateNodeAndEncodingHops.push_back(pair);
+                previousEncapsulateNode = i;
             }
-            std::cout << x_star[i] << " ";
         }
-        std::cout << std::endl;
 
         // 找到x_star之中的第一个1和下一个1之间的距离
         for (int i = 2; i < N+2;i++){
@@ -130,7 +134,7 @@ namespace inet{
         delete [] H_pre;
         delete [] x_star;
         // return result;
-        return encodingNodes;
+        return nextIntermediateNodeAndEncodingHops;
     }
 
 // calculateEncodingStrategyVector 计算重新封装策略

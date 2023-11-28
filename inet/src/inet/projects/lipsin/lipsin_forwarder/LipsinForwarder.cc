@@ -338,17 +338,22 @@ namespace inet {
         if((packetType != LipsinConstVar::LIPSIN_LINK_STATE_ANNOUNCEMENT_PACKET_TYPE) && (packetType != LipsinConstVar::LIPSIN_HELLO_PACKET_TYPE)){
             auto* oldRealLidsBf = const_cast<BloomFilter *>(lipsinHeaderOld->getRealLidsBf());
 
-            // check if current node is the intermediate node
-            // ------------------------------------------------------------------------------
+            // ----------------------------optimal encoding-----------------------------------
             int packetIndicateIntermediateNode = lipsinHeaderOld->getIntermediateNode();
             if(packetIndicateIntermediateNode == this->currentSatelliteId){
                 // reset the bloom filter
                 oldRealLidsBf->reset();
                 // we need to insert more link identifiers into the packets
                 std::vector<LinkInfo*> routes = lipsinRoutingTable->getSourceRoutesByDestId(lipsinHeaderOld->getDestinationList(0));
+                // get next intermediate node and next hop
+                auto* pathHeaderOld = lipsinHeaderOld->getPathHeaderForUpdate();
+                std::pair<int,int> nextIntermediateNodeAndHops = pathHeaderOld->encodingPointVector.front();
+                pathHeaderOld->encodingPointVector.pop_front();
+                int nextIntermediateNode = nextIntermediateNodeAndHops.first;
+                int hops = nextIntermediateNodeAndHops.second;
                 int i;
                 for(i = 0; i < routes.size() ;i++){
-                    if(i < this->singleTimeEncapsulationCount){
+                    if(i < hops){
                         oldRealLidsBf->insert(routes[i]->getId());
                     } else {
                         break;
@@ -359,9 +364,10 @@ namespace inet {
                     // set the intermediate node to negative
                     lipsinHeaderOld->setIntermediateNode(-1);
                 } else {
-                    lipsinHeaderOld->setIntermediateNode(routes[i]->getSrc());
+                    lipsinHeaderOld->setIntermediateNode(nextIntermediateNode);
                 }
             }
+            // ----------------------------optimal encoding-----------------------------------
             packet->insertAtFront(lipsinHeaderOld);
             // ------------------------------------------------------------------------------
 
