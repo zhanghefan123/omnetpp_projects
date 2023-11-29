@@ -11,6 +11,11 @@
 using namespace std;
 namespace inet{
 
+    std::string OptimalEncoding::convertParametersToString(int C, int k, int N, double B, double t) {
+        std::string result = std::to_string(C) + "_" + std::to_string(k) + "_" + std::to_string(N) + "_" + std::to_string(B) + "_" + std::to_string(t);
+        return result;
+    }
+
 // calculateFullOverhead 计算总的开销的实现
     double OptimalEncoding::calculateFullOverhead(int C,double M, int k, int N) {
         return OptimalEncoding::calculateIncorrectOverhead(C, M, k, N) + OptimalEncoding::calculateCorrectOverhead(M, N);
@@ -58,83 +63,89 @@ namespace inet{
         return minimum_overhead;
     }
 
-    deque<std::pair<int,int>> OptimalEncoding::calculateEncodingNodes(int C, int k ,int N, double B, double t){
-        deque<std::pair<int,int>> nextIntermediateNodeAndEncodingHops;
+    deque<int> OptimalEncoding::calculateEncodingNodes(int C, int k ,int N, double B, double t){
+        std::string key = OptimalEncoding::convertParametersToString(C, k, N, B, t);
+        if(OptimalEncoding::encodingNodesMap.find(key) != OptimalEncoding::encodingNodesMap.end()){
+            return OptimalEncoding::encodingNodesMap[key];
+        } else {
+            deque<int> nextIntermediateNodeAndEncodingHops;
 
-        // 创建一个一维数组用来进行状态的存储
-        auto *H = new double[N+1]; // 总共有N+1个状态, H(i)代表i跳的最小代价
+            // 创建一个一维数组用来进行状态的存储
+            auto *H = new double[N+1]; // 总共有N+1个状态, H(i)代表i跳的最小代价
 
-        // 创建一个辅助一维数组用来进行前驱状态的存储
-        auto *H_pre = new int[N+1]; // 总共有N个状态, H_pre(i)代表i跳的最小代价的前驱状态
+            // 创建一个辅助一维数组用来进行前驱状态的存储
+            auto *H_pre = new int[N+1]; // 总共有N个状态, H_pre(i)代表i跳的最小代价的前驱状态
 
-        // 创建一个一维数组用来进行封装策略的存储
-        auto *x_star = new int[N+2]; // 是一个一维数组, x_star[i]代表第i个节点的封装策略
+            // 创建一个一维数组用来进行封装策略的存储
+            auto *x_star = new int[N+2]; // 是一个一维数组, x_star[i]代表第i个节点的封装策略
 
-        // 进行数据结构状态的一些初始化的操作x
-        H[0] = 0; // 源路由0跳的代价为0
-        H_pre[0] = 0; // 源路由0跳的前驱状态为0
-        x_star[1] = 1; // 源路由第一个节点是一定要进行封装的
-        x_star[N+1] = 1; // 源路由最后一个节点是一定要结束的
+            // 进行数据结构状态的一些初始化的操作x
+            H[0] = 0; // 源路由0跳的代价为0
+            H_pre[0] = 0; // 源路由0跳的前驱状态为0
+            x_star[1] = 1; // 源路由第一个节点是一定要进行封装的
+            x_star[N+1] = 1; // 源路由最后一个节点是一定要结束的
 
-        // 开始利用动态规划状态转移方程进行计算, 0跳不用进行计算因为代价为0, 1跳到N跳都需要进行计算
-        for (int i = 1; i < N+1; i++) {
-            // 初始化为无穷大
-            H[i] = 1.0 / 0.0;
-            // 遍历i状态的所有的可能的前驱状态
-            for (int j = 0; j < i; j++) {
-                // 计算当前状态的代价 - 以时间作为单位。
-                double cost_in_time = OptimalEncoding::findMinimumOverheadWithOptimalM(C, k, i - j)/B + t + H[j];
-                // 如果当前状态的代价小于之前的代价, 则进行更新的操作
-                if (cost_in_time < H[i]) {
-                    H[i] = cost_in_time; // 更新当前的开销的最小值
-                    H_pre[i] = j; // 更新当前状态的前驱状态是哪一个
+            // 开始利用动态规划状态转移方程进行计算, 0跳不用进行计算因为代价为0, 1跳到N跳都需要进行计算
+            for (int i = 1; i < N+1; i++) {
+                // 初始化为无穷大
+                H[i] = 1.0 / 0.0;
+                // 遍历i状态的所有的可能的前驱状态
+                for (int j = 0; j < i; j++) {
+                    // 计算当前状态的代价 - 以时间作为单位。
+                    double cost_in_time = OptimalEncoding::findMinimumOverheadWithOptimalM(C, k, i - j)/B + t + H[j];
+                    // 如果当前状态的代价小于之前的代价, 则进行更新的操作
+                    if (cost_in_time < H[i]) {
+                        H[i] = cost_in_time; // 更新当前的开销的最小值
+                        H_pre[i] = j; // 更新当前状态的前驱状态是哪一个
+                    }
                 }
             }
-        }
 
-        // 当前状态是N
-        int current_state = N;
-        // 记录重新封装的次数
-        int count = 0;
-        // H(1)的前驱状态必定是0
-        while (current_state != 0) {
-            current_state = H_pre[current_state]; // 更新当前抵达了哪一个状态
-            x_star[current_state+1] = 1; // H_pre数组存储的是跳数，而x_star的索引存储的是节点的数量。
-            count++;
-        }
-
-        // 创建结果数组
-        std::vector<double> result;
-        result.push_back(count); // 将count的值放入到结果数组中
-        result.push_back(H[N]); // 将H(N)的值放入到结果数组中
-
-        // 将正常转发开销H(N)
-
-        // 将x_star打印出来 1 0 0 0 1 0 0 0 1
-        std::cout << "x_star:";
-        int previousEncapsulateNode = 1;
-        int encapsulateCount = 0;
-        for (int i = 1; i < N+2; i++) {
-            if((x_star[i] == 1) && (i != 1) && (i!=(N+1)))
-            {
-                encapsulateCount = i - previousEncapsulateNode;
-                auto pair = make_pair(i, encapsulateCount);
-                nextIntermediateNodeAndEncodingHops.push_back(pair);
-                previousEncapsulateNode = i;
+            // 当前状态是N
+            int current_state = N;
+            // 记录重新封装的次数
+            int count = 0;
+            // H(1)的前驱状态必定是0
+            while (current_state != 0) {
+                current_state = H_pre[current_state]; // 更新当前抵达了哪一个状态
+                x_star[current_state+1] = 1; // H_pre数组存储的是跳数，而x_star的索引存储的是节点的数量。
+                count++;
             }
-        }
 
-        // 找到x_star之中的第一个1和下一个1之间的距离
-        for (int i = 2; i < N+2;i++){
-            if(x_star[i] == 1){
-                break;
+            // 创建结果数组
+            std::vector<double> result;
+            result.push_back(count); // 将count的值放入到结果数组中
+            result.push_back(H[N]); // 将H(N)的值放入到结果数组中
+
+            // 将正常转发开销H(N)
+
+            // 将x_star打印出来 1 0 0 0 1 0 0 0 1
+            //                1 2 3 4 5 6 7 8 9
+            // 推入的是 4 与 4
+            std::cout << "x_star:";
+            int previousEncapsulateNode = 1;
+            int encapsulateCount = 0;
+            for (int i = 1; i < N+2; i++) {
+                if((x_star[i] == 1) && (i != 1))
+                {
+                    encapsulateCount = i - previousEncapsulateNode;
+                    nextIntermediateNodeAndEncodingHops.push_back(encapsulateCount);
+                    previousEncapsulateNode = i;
+                }
             }
+
+            // 找到x_star之中的第一个1和下一个1之间的距离
+            for (int i = 2; i < N+2;i++){
+                if(x_star[i] == 1){
+                    break;
+                }
+            }
+            delete [] H;
+            delete [] H_pre;
+            delete [] x_star;
+            OptimalEncoding::encodingNodesMap[key] = nextIntermediateNodeAndEncodingHops;
+            return nextIntermediateNodeAndEncodingHops;
         }
-        delete [] H;
-        delete [] H_pre;
-        delete [] x_star;
-        // return result;
-        return nextIntermediateNodeAndEncodingHops;
     }
 
 // calculateEncodingStrategyVector 计算重新封装策略

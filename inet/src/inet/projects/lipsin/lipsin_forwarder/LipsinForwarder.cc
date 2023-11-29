@@ -340,6 +340,7 @@ namespace inet {
 
             // ----------------------------optimal encoding-----------------------------------
             int packetIndicateIntermediateNode = lipsinHeaderOld->getIntermediateNode();
+            // 判断是否自己是中间节点
             if(packetIndicateIntermediateNode == this->currentSatelliteId){
                 // reset the bloom filter
                 oldRealLidsBf->reset();
@@ -347,13 +348,12 @@ namespace inet {
                 std::vector<LinkInfo*> routes = lipsinRoutingTable->getSourceRoutesByDestId(lipsinHeaderOld->getDestinationList(0));
                 // get next intermediate node and next hop
                 auto* pathHeaderOld = lipsinHeaderOld->getPathHeaderForUpdate();
-                std::pair<int,int> nextIntermediateNodeAndHops = pathHeaderOld->encodingPointVector.front();
+                int encapsulationCount = pathHeaderOld->encodingPointVector.front();
                 pathHeaderOld->encodingPointVector.pop_front();
-                int nextIntermediateNode = nextIntermediateNodeAndHops.first;
-                int hops = nextIntermediateNodeAndHops.second;
                 int i;
                 for(i = 0; i < routes.size() ;i++){
-                    if(i < hops){
+                    if(i < encapsulationCount){
+                        pathHeaderOld->getSourceDecideLinkSetNonConst()->addLink(routes[i]);
                         oldRealLidsBf->insert(routes[i]->getId());
                     } else {
                         break;
@@ -364,7 +364,7 @@ namespace inet {
                     // set the intermediate node to negative
                     lipsinHeaderOld->setIntermediateNode(-1);
                 } else {
-                    lipsinHeaderOld->setIntermediateNode(nextIntermediateNode);
+                    lipsinHeaderOld->setIntermediateNode(routes[encapsulationCount]->getDest());
                 }
             }
             // ----------------------------optimal encoding-----------------------------------

@@ -7,9 +7,13 @@
 #include <vector>
 #include <ostream>
 #include <deque>
+#include <map>
 namespace inet{
     class OptimalEncoding{
+    private:
+        static std::map<std::string, std::deque<int>> encodingNodesMap;
     public:
+        static std::string convertParametersToString(int C, int k, int N, double B, double t);
         // calculate the f_co overhead
         static double calculateFullOverhead(int C,double M, int k, int N);
         // calculate the f_cfo overhead
@@ -21,7 +25,7 @@ namespace inet{
         // dynamic programming to calculate the encoding strategy vector x star
         static std::vector<double> calculateEncodingStrategyVector(int C , int k, int N, double B, double t);
         // calculate encoding nodes
-        static std::deque<std::pair<int,int>> calculateEncodingNodes(int C, int k, int N, double B, double t);
+        static std::deque<int> calculateEncodingNodes(int C, int k, int N, double B, double t);
         // find optimal M with given C, K,N
         static double findMinimumOverheadWithOptimalM(int C, int K, int N);
         // set precision, os is the output stream, n is the precision

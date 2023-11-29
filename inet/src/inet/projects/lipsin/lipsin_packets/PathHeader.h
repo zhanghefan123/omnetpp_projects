@@ -13,7 +13,7 @@ namespace inet {
 
 class PathHeader {
 public:
-    std::deque<std::pair<int,int>> encodingPointVector;
+    std::deque<int> encodingPointVector;
 private:
     LinkSet* sourceDecideLinkSet = nullptr;
     LinkSet* actualLinkSet = nullptr;

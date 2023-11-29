@@ -466,22 +466,20 @@ namespace inet {
             // --------------------------optimal-encoding----------------------------------
             // calculate encoding nodes
             if(enableOptimalEncoding){
-                std::deque<std::pair<int,int>> nextIntermediateNodeAndHops = {};
-                // 1 0 0 0 1 0 0 0 1 (1,5) 1 encpasulate 4 identifiers
+                std::deque<int> nextIntermediateNodeAndHops = {};
                 nextIntermediateNodeAndHops = OptimalEncoding::calculateEncodingNodes(this->bloomFilterSize * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
-                // pop out the first one
-                std::pair<int,int> firstPair = nextIntermediateNodeAndHops.front();
+                int encapsulationCount = nextIntermediateNodeAndHops.front();
                 nextIntermediateNodeAndHops.pop_front();
-                int nextIntermediateNode = firstPair.first;
-                int hops = firstPair.second;
+                int nextIntermediateNode = routes[encapsulationCount]->getDest();
                 while(!nextIntermediateNodeAndHops.empty()){
-                    std::pair<int,int> nextPair = nextIntermediateNodeAndHops.front();
+                    int encapsulationCountTmp = nextIntermediateNodeAndHops.front();
                     nextIntermediateNodeAndHops.pop_front();
-                    pathHeader->encodingPointVector.push_back(nextPair);
+                    pathHeader->encodingPointVector.push_back(encapsulationCountTmp);
                 }
                 int i;
                 for(i = 0; i < routes.size() ;i++){
-                    if(i < hops){
+                    if(i < encapsulationCount){
+                        pathHeader->getSourceDecideLinkSetNonConst()->addLink(routes[i]);
                         realLidsBf->insert(routes[i]->getId());
                     } else {
                         break;
@@ -496,6 +494,7 @@ namespace inet {
                     lipsinHeader->setIntermediateNode(nextIntermediateNode);
                 }
             } else {
+                // 遍历所有的路由条目并且添加到布隆过滤器和pathHeader之中去
                 for(auto& link : routes){
                     pathHeader->getSourceDecideLinkSetNonConst()->addLink(link);
                     realLidsBf->insert(link->getId());
