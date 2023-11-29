@@ -26,7 +26,7 @@ namespace inet;
 
 // following code will be inserted into namespace inet {}
 cplusplus{{
-	const B LIPSIN_HEADER_LENGTH = B(0); // length of the LIPSIN HEADER // send packet size = 1000 + 14(mac header) + 4(mac tail) + 10(LIPSIN_HEADER) + 8(front) = 1036 without ip header
+	const B LIPSIN_HEADER_LENGTH = B(10); // length of the LIPSIN HEADER // send packet size = 1000 + 14(mac header) + 4(mac tail) + 10(LIPSIN_HEADER) + 8(front) = 1036 without ip header
 }}
 
 

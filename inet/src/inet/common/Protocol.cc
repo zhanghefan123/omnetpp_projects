@@ -132,6 +132,7 @@ const Protocol Protocol::mpls("mpls", "MPLS");
 const Protocol Protocol::ospf("ospf", "OSPF");
 const Protocol Protocol::dtn("dtn", "dtn"); // zhf add code
 const Protocol Protocol::lipsin_app("lipsin_app", "lipsin_app"); // zhf add code
+const Protocol Protocol::lipsin_sender_app("lipsin_sender_app", "lipsin_sender_app"); // zhf add code
 const Protocol Protocol::lipsin_network("lipsin_network", "lipsin_network"); // zhf add code
 const Protocol Protocol::eigrp("eigrp", "EIGRP");
 const Protocol Protocol::pim("pim", "PIM");

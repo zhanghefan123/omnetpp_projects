@@ -12,7 +12,11 @@ namespace inet{
     class OptimalEncoding{
     private:
         static std::map<std::string, std::deque<int>> encodingNodesMap;
+        static std::map<std::string, int> optimizedMMap;
+        static int optimzedBloomFilterSize;
     public:
+        static std::string generateOptimizedMMapKey(int C, int k, int N);
+        // convert parameters to string
         static std::string convertParametersToString(int C, int k, int N, double B, double t);
         // calculate the f_co overhead
         static double calculateFullOverhead(int C,double M, int k, int N);
@@ -26,8 +30,10 @@ namespace inet{
         static std::vector<double> calculateEncodingStrategyVector(int C , int k, int N, double B, double t);
         // calculate encoding nodes
         static std::deque<int> calculateEncodingNodes(int C, int k, int N, double B, double t);
-        // find optimal M with given C, K,N
+        // find optimal overhead with given C, K, N
         static double findMinimumOverheadWithOptimalM(int C, int K, int N);
+        // find optimal M with given C, K, N
+        static int findOptimalM(int C, int K ,int N);
         // set precision, os is the output stream, n is the precision
         static std::ostream& setPrecision(std::ostream& os, int n);
     };

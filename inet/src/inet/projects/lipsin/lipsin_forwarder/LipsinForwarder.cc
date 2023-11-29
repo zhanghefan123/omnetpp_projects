@@ -342,18 +342,22 @@ namespace inet {
             int packetIndicateIntermediateNode = lipsinHeaderOld->getIntermediateNode();
             // 判断是否自己是中间节点
             if(packetIndicateIntermediateNode == this->currentSatelliteId){
+                // std::cout << "i am the intermediate node" << std::endl;
                 // reset the bloom filter
                 oldRealLidsBf->reset();
                 // we need to insert more link identifiers into the packets
-                std::vector<LinkInfo*> routes = lipsinRoutingTable->getSourceRoutesByDestId(lipsinHeaderOld->getDestinationList(0));
+                std::vector<LinkInfo*> routes = lipsinRoutingTable->getRouteForUnicast(lipsinHeaderOld->getDestinationList(0));
                 // get next intermediate node and next hop
                 auto* pathHeaderOld = lipsinHeaderOld->getPathHeaderForUpdate();
-                int encapsulationCount = pathHeaderOld->encodingPointVector.front();
-                pathHeaderOld->encodingPointVector.pop_front();
+                int encapsulationCount = pathHeaderOld->encodingPointVector->front();
+                // std::cout << "encapsulationCount:" << encapsulationCount << std::endl;
+                // std::cout << "routes size: " << routes.size() << std::endl;
+                pathHeaderOld->encodingPointVector->pop_front();
                 int i;
                 for(i = 0; i < routes.size() ;i++){
                     if(i < encapsulationCount){
                         pathHeaderOld->getSourceDecideLinkSetNonConst()->addLink(routes[i]);
+                        std::cout << "insert link " << routes[i]->getSrc() << "-->" << routes[i]->getDest() << std::endl;
                         oldRealLidsBf->insert(routes[i]->getId());
                     } else {
                         break;
@@ -364,7 +368,7 @@ namespace inet {
                     // set the intermediate node to negative
                     lipsinHeaderOld->setIntermediateNode(-1);
                 } else {
-                    lipsinHeaderOld->setIntermediateNode(routes[encapsulationCount]->getDest());
+                    lipsinHeaderOld->setIntermediateNode(routes[encapsulationCount-1]->getDest());
                 }
             }
             // ----------------------------optimal encoding-----------------------------------
@@ -775,11 +779,11 @@ namespace inet {
             double propagationDelay = channel->getDelay().dbl() * 1000;
             channel = nullptr;
             lipsinHeaderNew->setPropagationDelay(lipsinHeaderNew->getPropagationDelay() + propagationDelay);
-            // --------------------------------------------------------------------------------------------
+             // --------------------------------------------------------------------------------------------
 
             // zhf add set transmission delay
             // ---------------------------------------------------------------------------------------------
-            double transmissionDelay = 1036.0 * 8.0 / (10.0 * 1000.0);
+            double transmissionDelay = (1030) * 8.0 / (10.0 * 1000.0);
             lipsinHeaderNew->setTransmissionDelay(lipsinHeaderNew->getTransmissionDelay() + transmissionDelay);
             // ---------------------------------------------------------------------------------------------
 

@@ -52,7 +52,8 @@ namespace inet {
             ss << "avg bit set rate: " << this->sumBitSetRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
             ss << "max forward count: " << this->maxForwardCount << std::endl;
             ss << "avg false positive rate: " << this->sumFalsePositiveRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
-            ss << "encapsulation node count: " << this->encapsulationNodeCount << std::endl;
+            ss << "encapsulation node count: " << this->encapsulationNodeCount << std::endl; // 25-26 26-27 27-28 28-29 29-30
+            ss << "time consumption: " << (this->encapsulationNodeCount * (0.01) + ((this->redundantForwardCount * (8000 + this->optimizedBloomFilterSize) + this->totalReceivedPackets * 5 * (222)) / double(10*1000)) ) / this->totalReceivedPackets << std::endl; // 10 microseconds --> 10-2 miliseconds
             ss << std::endl;
         }else{
             ss << "total send packet count: " << this->totalSendPackets << std::endl;

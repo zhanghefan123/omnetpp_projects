@@ -11,7 +11,7 @@
 #include "inet/common/InitStages.h" // for NUM_INIT_STAGES
 #include "inet/common/packet/Packet.h" // for Packet
 #include "inet/projects/lipsin/lipsin_table/LinkInfoTable.h"
-
+#include "inet/projects/lipsin/lipsin_global_recorder/LipsinGlobalRecorder.h"
 using namespace omnetpp;
 namespace inet {
     class LipsinHeader;
@@ -83,13 +83,14 @@ private:
     std::vector<int> availabel_bloom_filter_seed;
 public:
     std::map<std::string, std::vector<int>*> multicastGroups;
-
+    LipsinGlobalRecorder* globalRecorder;
 protected:
     void finish() override;
     void initialize(int stage) override;
     void handleMessage(cMessage * message) override;
     int numInitStages() const override { return NUM_INIT_STAGES; }
 public:
+    void setLipsinRecorder();
     void addPayload(Packet* packet) const;
     LipsinSender() {this->recorder = new SendRecorder();}; // NOLINT
     ~LipsinSender() override;

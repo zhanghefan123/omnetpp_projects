@@ -20,8 +20,13 @@ namespace inet {
     void LipsinReceiver::initialize(int stage) {
         if (stage == INITSTAGE_LOCAL) {
             this->recorder = new ReceiveRecorder();
+            this->setLinkInfoTable();
             this->registerLipsinReceiverProtocol();
         }
+    }
+
+    void LipsinReceiver::setLinkInfoTable(){
+        this->linkInfoTable = dynamic_cast<LinkInfoTable*>(this->getParentModule()->getSubmodule("linkInfoTable"));
     }
 
     /**
@@ -75,6 +80,9 @@ namespace inet {
                 this->recorder->startTime = simTime().dbl();
             }
             // ---------------------------delay related-----------------------------------------
+            // record packet encapsulation delay
+            double packetEncapsulationDelay = pathHeader->encapsulationNodeCount * 0.01; // ms
+            // std::cout << packetEncapsulationDelay << "ms" << std::endl;
             // get packet total delay
             double packetTotalDelay = (simTime().dbl() - lipsinHeader->getPacketCreatedTime()) * 1000;
             // get packet transmission delay
@@ -87,7 +95,7 @@ namespace inet {
 
             // ---------------------------update delay related-----------------------------------------
             // update total delay
-            this->recorder->sumDelay += packetTotalDelay;
+            this->recorder->sumDelay += packetTotalDelay + packetEncapsulationDelay;
             // update transmission delay
             this->recorder->transmissionDelay += packetTransmissionDelay;
             // update propagation delay

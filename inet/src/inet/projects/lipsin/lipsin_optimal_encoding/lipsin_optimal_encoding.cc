@@ -16,6 +16,11 @@ namespace inet{
         return result;
     }
 
+    std::string OptimalEncoding::generateOptimizedMMapKey(int C, int k, int N){
+        std::string result = std::to_string(C) + "_" + std::to_string(k) + "_" + std::to_string(N);
+        return result;
+    }
+
 // calculateFullOverhead 计算总的开销的实现
     double OptimalEncoding::calculateFullOverhead(int C,double M, int k, int N) {
         return OptimalEncoding::calculateIncorrectOverhead(C, M, k, N) + OptimalEncoding::calculateCorrectOverhead(M, N);
@@ -45,7 +50,31 @@ namespace inet{
         return result;
     }
 
-// findMinimumOverheadWithOptimalM 使用遍历的方式从一个指定的范围之中找到最优的M
+    int OptimalEncoding::findOptimalM(int C, int K, int N) {
+        std::string OptimizedMMapKey = std::to_string(C) + "_" + std::to_string(K) + "_" + std::to_string(N);
+        if(OptimalEncoding::optimizedMMap.find(OptimizedMMapKey) != OptimalEncoding::optimizedMMap.end())
+        {
+            return OptimalEncoding::optimizedMMap[OptimizedMMapKey];
+        } else {
+            int optimizedM = -1;
+            // 这是最小的开销：首先给它一个无穷大，让他能够被替换调
+            double minimum_overhead = 1.0 / 0.0;
+            // 进行布隆过滤器大小M的遍历，从而能够寻找一个最优的M
+            for(int i = 1 ; i < 1000; i++)
+            {
+                // 使用遍历到的M进行开销的计算，如果计算的结果不是无穷大，那么就进行比较，如果比最小的开销还要小，那么就进行替换
+                if(!std::isinf(calculateFullOverhead(C, i, K, N)) && calculateFullOverhead(C, i, K, N) < minimum_overhead)
+                {
+                    minimum_overhead = calculateFullOverhead(C, i, K, N);
+                    optimizedM = i; // 存储最优的M的大小
+                }
+            }
+            OptimalEncoding::optimizedMMap[OptimizedMMapKey] = optimizedM;
+            return optimizedM;
+        }
+    }
+
+    // findMinimumOverheadWithOptimalM 使用遍历的方式从一个指定的范围之中找到最优的M
     double OptimalEncoding::findMinimumOverheadWithOptimalM(int C, int K, int N) {
         int optimizedM = -1;
         // 这是最小的开销：首先给它一个无穷大，让他能够被替换调
@@ -132,7 +161,9 @@ namespace inet{
                     nextIntermediateNodeAndEncodingHops.push_back(encapsulateCount);
                     previousEncapsulateNode = i;
                 }
+                std::cout << x_star[i] << " ";
             }
+            std::cout << std::endl;
 
             // 找到x_star之中的第一个1和下一个1之间的距离
             for (int i = 2; i < N+2;i++){
@@ -223,4 +254,8 @@ namespace inet{
         os << std::fixed << std::setprecision(n);
         return os;
     }
+
+    std::map<std::string, std::deque<int>> OptimalEncoding::encodingNodesMap = std::map<std::string, std::deque<int>>();
+    std::map<std::string, int> OptimalEncoding::optimizedMMap = std::map<std::string,int>();
+    int OptimalEncoding::optimzedBloomFilterSize = 0;
 }

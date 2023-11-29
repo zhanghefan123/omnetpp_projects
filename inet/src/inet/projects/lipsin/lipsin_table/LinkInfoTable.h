@@ -15,6 +15,7 @@ using namespace omnetpp;
 namespace inet{
     class LinkInfoTable:public cSimpleModule{ // NOLINT
     public:
+        bool isApplicationLayerRegistered = false;
         cMessage* recalculateTimer;
         double recalculateInterval;
         bool isLinkUpdated;

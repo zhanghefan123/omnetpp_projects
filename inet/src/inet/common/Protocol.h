@@ -110,6 +110,7 @@ class INET_API Protocol
     static const Protocol ospf;
     static const Protocol dtn; // zhf add code
     static const Protocol lipsin_app; // zhf add code
+    static const Protocol lipsin_sender_app; // zhf add code
     static const Protocol lipsin_network; // zhf add code
     static const Protocol pim;
     static const Protocol ppp;

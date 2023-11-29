@@ -123,6 +123,7 @@ ProtocolGroup ProtocolGroup::ipprotocol("ipprotocol", {
     { 90, &Protocol::dtn  }, // zhf add code for dtn
     { 91, &Protocol::lipsin_app}, // zhf add code for lipsin_app
     { 92,  &Protocol::lipsin_network}, // zhf add code for lipsin_network
+    { 93, &Protocol::lipsin_sender_app}, // zhf add code for lipsin_sender
     { 103, &Protocol::pim },
     { 132, &Protocol::sctp },
     { 135, &Protocol::mobileipv6 },

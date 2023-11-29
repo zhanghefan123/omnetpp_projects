@@ -17,6 +17,7 @@
 #include "inet/projects/lipsin/const_vars/LipsinConstVar.h"
 #include "inet/projects/lipsin/lipsin_operator_reload/LipsinOperatorReload.h"
 #include "inet/projects/lipsin/lipsin_optimal_encoding/lipsin_optimal_encoding.h"
+
 namespace inet {
     Define_Module(LipsinSender);
 
@@ -133,6 +134,7 @@ namespace inet {
             this->sendTimer = new cMessage("sendTimer");
             this->singleTimeEncapsulationCount = int(this->getParentModule()->par("singleTimeEncapsulationCount").intValue());
             this->enableOptimalEncoding = this->par("enableOptimalEncoding").boolValue();
+            this->setLipsinRecorder();
             this->loadAvailableBloomFilterSeed();
             this->setLinkInfoTable();
             this->setTransmissionPattern();
@@ -178,7 +180,7 @@ namespace inet {
      * register lipsin sender protocols
      */
     void LipsinSender::registerLipsinSenderProtocols() {
-        registerProtocol(Protocol::lipsin_app, gate("appOut"), gate("appIn"));
+        registerProtocol(Protocol::lipsin_sender_app, gate("appOut"), gate("appIn"));
     }
 
     /**
@@ -231,10 +233,10 @@ namespace inet {
                         this->currentBloomFilterSeed += 100;
                     } else {
                         this->currentBloomFilterSeed = this->recorder->storedBloomFilterSeed[(this->recorder->packetSentCount) % this->recorder->storedBloomFilterSeed.size()];
-                        // std::cout << this->currentBloomFilterSeed << std::endl;
+                        std::cout << this->currentBloomFilterSeed << std::endl;
                     }
                 }
-               this->scheduleAt(currentTime + this->sendInterval, this->sendTimer);
+                this->scheduleAt(currentTime + this->sendInterval, this->sendTimer);
             }
         }
     }
@@ -278,7 +280,7 @@ namespace inet {
                     // encapsulate the destination ids in single bloom filter
                     encapsulateLipsin(packet, *(item.second), LipsinConstVar::LIPSIN_MULTICAST_PACKET_TYPE);
                     // add protocol tag
-                    packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_app); // set packet protocol
+                    packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_sender_app); // set packet protocol
                     packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&Protocol::lipsin_network); // next layer protocol
                     // put the packet into the result
                     result.push_back(packet);
@@ -298,7 +300,7 @@ namespace inet {
                 // encapsulate the current destination satellite id
                 encapsulateLipsin(packet, singleDestList, LipsinConstVar::LIPSIN_MULTI_UNICAST_PACKET_TYPE);
                 // add protocol payload
-                packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_app); // set packet protocol
+                packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_sender_app); // set packet protocol
                 packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&Protocol::lipsin_network); // next layer protocol
                 // put the packet into the result
                 result.push_back(packet);
@@ -310,7 +312,7 @@ namespace inet {
             auto* packet = new Packet(LipsinConstVar::LIPSIN_UNICAST_PACKET_NAME.c_str());
             encapsulateLipsin(packet, singleDestList, LipsinConstVar::LIPSIN_UNICAST_PACKET_TYPE);
             // add protocol payload
-            packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_app); // set packet protocol
+            packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_sender_app); // set packet protocol
             packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&Protocol::lipsin_network); // next layer protocol
             // put the packet into the result
             result.push_back(packet);
@@ -414,8 +416,8 @@ namespace inet {
 
         // create real lids bloom filter
         // ---------------------------------------------------------------------------------------------
-        auto* realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
-        lipsinHeader->setRealLidsBf(realLidsBf);
+        BloomFilter* realLidsBf = nullptr;
+        // lipsinHeader->setRealLidsBf(realLidsBf);
         // ---------------------------------------------------------------------------------------------
 
         // create virtual lids bloom filter
@@ -451,6 +453,11 @@ namespace inet {
         // insert according too the current transmission pattern
         if(this->transmissionPattern == TransmissionPattern::MULTICAST){
             routes = lipsinRoutingTable->getMulticastRoutesByDestIds(destIds);
+            // create real lids bloom filter
+            // ---------------------------------------------------------------------------------------------
+            realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
+            lipsinHeader->setRealLidsBf(realLidsBf);
+            // ---------------------------------------------------------------------------------------------
             // traverse the link info and insert them
             for(auto& link: routes){
                 realLidsBf->insert(link->getId());
@@ -464,17 +471,29 @@ namespace inet {
             routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
 
             // --------------------------optimal-encoding----------------------------------
+            lipsinHeader->setChunkLength(b(this->bloomFilterSize));
             // calculate encoding nodes
             if(enableOptimalEncoding){
-                std::deque<int> nextIntermediateNodeAndHops = {};
-                nextIntermediateNodeAndHops = OptimalEncoding::calculateEncodingNodes(this->bloomFilterSize * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
-                int encapsulationCount = nextIntermediateNodeAndHops.front();
-                nextIntermediateNodeAndHops.pop_front();
-                int nextIntermediateNode = routes[encapsulationCount]->getDest();
-                while(!nextIntermediateNodeAndHops.empty()){
-                    int encapsulationCountTmp = nextIntermediateNodeAndHops.front();
-                    nextIntermediateNodeAndHops.pop_front();
-                    pathHeader->encodingPointVector.push_back(encapsulationCountTmp);
+
+                std::deque<int> encapsulationHops = {};
+                encapsulationHops = OptimalEncoding::calculateEncodingNodes(1000 * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
+                pathHeader->encapsulationNodeCount = int(encapsulationHops.size());
+                int encapsulationCount = encapsulationHops.front();
+                encapsulationHops.pop_front();
+                int nextIntermediateNode = routes[encapsulationCount-1]->getDest();
+                // find optimal M for encapsulation Hops
+                // int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, encapsulationCount);
+                // this->globalRecorder->optimizedBloomFilterSize = optimalM;
+                // std::cout << "optimalM = " << optimalM << std::endl;
+                // create real lids bloom filter
+                // ---------------------------------------------------------------------------------------------
+                realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
+                lipsinHeader->setRealLidsBf(realLidsBf);
+                // ---------------------------------------------------------------------------------------------
+                while(!encapsulationHops.empty()){
+                    int encapsulationCountTmp = encapsulationHops.front();
+                    encapsulationHops.pop_front();
+                    pathHeader->encodingPointVector->push_back(encapsulationCountTmp);
                 }
                 int i;
                 for(i = 0; i < routes.size() ;i++){
@@ -494,6 +513,15 @@ namespace inet {
                     lipsinHeader->setIntermediateNode(nextIntermediateNode);
                 }
             } else {
+                // create real lids bloom filter
+                // ---------------------------------------------------------------------------------------------
+                // int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, routes.size());
+                // this->globalRecorder->optimizedBloomFilterSize = optimalM;
+                pathHeader->encapsulationNodeCount = 1;
+                realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
+                lipsinHeader->setRealLidsBf(realLidsBf);
+                lipsinHeader->setIntermediateNode(-1);
+                // ---------------------------------------------------------------------------------------------
                 // 遍历所有的路由条目并且添加到布隆过滤器和pathHeader之中去
                 for(auto& link : routes){
                     pathHeader->getSourceDecideLinkSetNonConst()->addLink(link);
@@ -562,6 +590,10 @@ namespace inet {
 
     SendRecorder* LipsinSender::getSendRecorder(){
         return this->recorder;
+    }
+
+    void LipsinSender::setLipsinRecorder() {
+        this->globalRecorder = dynamic_cast<LipsinGlobalRecorder*>(this->getSystemModule()->getSubmodule("lipsinGlobalRecorder"));
     }
 
     std::string LipsinSender::getTransmissionPatternStr(){

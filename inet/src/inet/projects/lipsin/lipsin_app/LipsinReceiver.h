@@ -10,7 +10,7 @@
 
 #include "inet/common/InitStages.h" // for NUM_INIT_STAGES
 #include "inet/common/packet/Packet.h" // for Packet
-
+#include "inet/projects/lipsin/lipsin_table/LinkInfoTable.h"
 using namespace omnetpp;
 
 namespace inet {
@@ -33,9 +33,11 @@ class LipsinReceiver : public cSimpleModule { // NOLINT
 private:
     int packetLength;
     ReceiveRecorder* recorder;
+    LinkInfoTable* linkInfoTable;
 public:
     LipsinReceiver() = default;
     ~LipsinReceiver() override {delete this->recorder;}
+    void setLinkInfoTable();
 protected:
     void initialize(int stage) override;
     void handleMessage(cMessage *message) override;

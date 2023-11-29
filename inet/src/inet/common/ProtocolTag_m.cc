@@ -960,7 +960,7 @@ unsigned int DispatchProtocolReqDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_servicePrimitive
+        0,    // FIELD_servicePrimitive
     };
     return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
@@ -1105,7 +1105,6 @@ void DispatchProtocolReqDescriptor::setFieldValueAsString(omnetpp::any_ptr objec
     }
     DispatchProtocolReq *pp = omnetpp::fromAnyPtr<DispatchProtocolReq>(object); (void)pp;
     switch (field) {
-        case FIELD_servicePrimitive: pp->setServicePrimitive((inet::ServicePrimitive)string2enum(value, "inet::ServicePrimitive")); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DispatchProtocolReq'", field);
     }
 }
@@ -1137,7 +1136,6 @@ void DispatchProtocolReqDescriptor::setFieldValue(omnetpp::any_ptr object, int f
     }
     DispatchProtocolReq *pp = omnetpp::fromAnyPtr<DispatchProtocolReq>(object); (void)pp;
     switch (field) {
-        case FIELD_servicePrimitive: pp->setServicePrimitive(static_cast<inet::ServicePrimitive>(value.intValue())); break;
         default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DispatchProtocolReq'", field);
     }
 }
