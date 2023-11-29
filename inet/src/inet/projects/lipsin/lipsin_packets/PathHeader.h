@@ -14,6 +14,7 @@ namespace inet {
 class PathHeader {
 public:
     std::deque<int> encodingPointVector;
+    int encapsulationNodeCount;
 private:
     LinkSet* sourceDecideLinkSet = nullptr;
     LinkSet* actualLinkSet = nullptr;

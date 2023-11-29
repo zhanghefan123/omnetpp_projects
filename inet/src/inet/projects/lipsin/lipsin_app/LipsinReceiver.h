@@ -26,6 +26,7 @@ public:
     int totalReceivedSize = 0;
     double throughput = 0;
     double startTime = 0;
+    int encapsulationNodeCount = 0;
     std::set<std::string> alreadyReceivedPacketUuids;
 };
 class LipsinReceiver : public cSimpleModule { // NOLINT

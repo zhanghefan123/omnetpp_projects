@@ -14,6 +14,7 @@ namespace inet {
 
 class LipsinGlobalRecorder : public cSimpleModule{
 public:
+    int encapsulationNodeCount = 0;
     bool startFromQtEnv = false;
     int maxForwardCount = 0;
     double sumBitSetRate = 0;

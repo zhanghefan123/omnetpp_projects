@@ -52,6 +52,7 @@ namespace inet {
             ss << "avg bit set rate: " << this->sumBitSetRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
             ss << "max forward count: " << this->maxForwardCount << std::endl;
             ss << "avg false positive rate: " << this->sumFalsePositiveRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
+            ss << "encapsulation node count: " << this->encapsulationNodeCount << std::endl;
             ss << std::endl;
         }else{
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
@@ -120,6 +121,7 @@ namespace inet {
                     this->avgLipsinTotalDelaySum += receiveRecorder->averageTotalDelay;
                     this->avgLipsinQueueingDelaySum += receiveRecorder->averageQueueingDelay;
                     this->totalLipsinReceiver += 1;
+                    this->encapsulationNodeCount += receiveRecorder->encapsulationNodeCount;
                 }
                 // judge if the satellite module has sender
                 auto* sender = dynamic_cast<LipsinSender*>(satelliteModule->getSubmodule("lipsinSender"));
