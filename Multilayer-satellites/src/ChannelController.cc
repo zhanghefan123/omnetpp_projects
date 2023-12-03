@@ -329,6 +329,18 @@ void ChannelController::refreshDisplay() const
             }
         }
     }
+
+    // draw gsls
+    for(const auto link : gslConnectionMap){
+        if (!satToGroundColor.empty()) {
+            // 获取链路的起始点和终止点
+            auto start = link.second.los->getStartWorld();
+            auto end = link.second.los->getEndWorld();
+            connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end,
+                                                                              satToGroundWidth,
+                                                                              osgEarth::Color(satToGroundColor)));
+        }
+    }
 }
 
 bool ChannelController::judgeLinkSrcOrDestHasApps(Link &link) {
