@@ -14,6 +14,7 @@ namespace inet {
 
 class LipsinGlobalRecorder : public cSimpleModule{
 public:
+    int settedBloomFilterSize = 0;
     int optimizedBloomFilterSize = 0;
     int encapsulationNodeCount = 0;
     bool startFromQtEnv = false;

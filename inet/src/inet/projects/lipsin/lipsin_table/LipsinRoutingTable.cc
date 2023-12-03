@@ -47,6 +47,17 @@ namespace inet {
         return this->destinationRoutesMap[nodeId];
     }
 
+    int LipsinRoutingTable::findMaxLinkLength() {
+        int maxLength = 0;
+        for(const auto& item : this->destinationRoutesMap){
+            int currentLength = int(item.second.size());
+            if(currentLength > maxLength){
+                maxLength = currentLength;
+            }
+        }
+        return maxLength;
+    }
+
     std::vector<LinkInfo*> LipsinRoutingTable::getSourceRoutesByDestIds(const std::vector<int>& nodeIds) {
         std::vector<LinkInfo*> final_result;
         for(int nodeId : nodeIds){

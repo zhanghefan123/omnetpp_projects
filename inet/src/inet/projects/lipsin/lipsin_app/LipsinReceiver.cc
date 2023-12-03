@@ -37,7 +37,7 @@ namespace inet {
     }
 
     /**
-     * handle message 
+     * handle message
      * @param message
      */
     void LipsinReceiver::handleMessage(cMessage *message){
@@ -94,6 +94,8 @@ namespace inet {
             // -------------------------- delay related-----------------------------------------
 
             // ---------------------------update delay related-----------------------------------------
+            // update the receive num
+            this->recorder->packetReceivedCount++;
             // update total delay
             this->recorder->sumDelay += packetTotalDelay + packetEncapsulationDelay;
             // update transmission delay
@@ -108,8 +110,7 @@ namespace inet {
             this->recorder->averageQueueingDelay = (this->recorder->queueingDelay / this->recorder->packetReceivedCount);
             // ---------------------------update delay related-----------------------------------------
 
-            // update the receive num
-            this->recorder->packetReceivedCount++;
+
             // update the encapsulationNodeCount
             this->recorder->encapsulationNodeCount += pathHeader->encapsulationNodeCount;
             // update the receive size

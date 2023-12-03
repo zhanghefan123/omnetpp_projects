@@ -39,6 +39,7 @@ namespace inet {
         }
         if(isLipsin){
             int lidIncrease = int(satelliteModule->par("lidIncrease").intValue());
+            ss << "lipsin bloom filter size: " << this->settedBloomFilterSize << std::endl;
             ss << "transmission pattern: " << this->transmissionPattern << std::endl;
             ss << "lid Increase: " << lidIncrease << std::endl;
             ss << "redundant forward count: " << this->redundantForwardCount << std::endl;

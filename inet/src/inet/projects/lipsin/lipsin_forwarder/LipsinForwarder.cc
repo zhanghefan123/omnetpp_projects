@@ -357,7 +357,7 @@ namespace inet {
                 for(i = 0; i < routes.size() ;i++){
                     if(i < encapsulationCount){
                         pathHeaderOld->getSourceDecideLinkSetNonConst()->addLink(routes[i]);
-                        std::cout << "insert link " << routes[i]->getSrc() << "-->" << routes[i]->getDest() << std::endl;
+                        // std::cout << "insert link " << routes[i]->getSrc() << "-->" << routes[i]->getDest() << std::endl;
                         oldRealLidsBf->insert(routes[i]->getId());
                     } else {
                         break;
@@ -783,7 +783,8 @@ namespace inet {
 
             // zhf add set transmission delay
             // ---------------------------------------------------------------------------------------------
-            double transmissionDelay = (1030) * 8.0 / (10.0 * 1000.0);
+            // std::cout << "lipsin header size: " << (int(lipsinHeaderNew->getChunkLength().get())/8) << std::endl;
+            double transmissionDelay = (1026 + (int(lipsinHeaderNew->getChunkLength().get())/8)) * 8.0 / (10.0 * 1000.0);
             lipsinHeaderNew->setTransmissionDelay(lipsinHeaderNew->getTransmissionDelay() + transmissionDelay);
             // ---------------------------------------------------------------------------------------------
 

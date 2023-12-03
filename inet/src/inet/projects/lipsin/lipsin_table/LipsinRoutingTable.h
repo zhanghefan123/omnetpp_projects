@@ -25,6 +25,7 @@ public:
     std::vector<LinkInfo*> getSourceRoutesByDestId(int nodeId);
     std::vector<LinkInfo*> getSourceRoutesByDestIds(const std::vector<int>& nodeIds);
     std::vector<LinkInfo*> getMulticastRoutesByDestIds(const std::vector<int>& nodeIds);
+    int findMaxLinkLength();
     void printSourceRoutingTable();
     void addWatches();
     void persist();

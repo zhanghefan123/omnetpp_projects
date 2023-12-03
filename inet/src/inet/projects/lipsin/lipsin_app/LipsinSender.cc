@@ -469,7 +469,8 @@ namespace inet {
             }
             int singleDestinationId = destIds[0];
             routes = lipsinRoutingTable->getRouteForUnicast(singleDestinationId);
-
+            // traverse the lipsinRoutingTable
+            // std::cout << "max length: " << lipsinRoutingTable->findMaxLinkLength();
             // --------------------------optimal-encoding----------------------------------
             lipsinHeader->setChunkLength(b(this->bloomFilterSize));
             // calculate encoding nodes
@@ -564,6 +565,7 @@ namespace inet {
         }
 
         falsePositiveRate = double(falsePositives) / double(linkInfoTableByIdMap.size());
+        // std::cout << falsePositiveRate << std::endl;
         this->recorder->sumFalsePositiveRate += falsePositiveRate;
     }
 
@@ -594,6 +596,7 @@ namespace inet {
 
     void LipsinSender::setLipsinRecorder() {
         this->globalRecorder = dynamic_cast<LipsinGlobalRecorder*>(this->getSystemModule()->getSubmodule("lipsinGlobalRecorder"));
+        this->globalRecorder->settedBloomFilterSize = this->bloomFilterSize;
     }
 
     std::string LipsinSender::getTransmissionPatternStr(){
