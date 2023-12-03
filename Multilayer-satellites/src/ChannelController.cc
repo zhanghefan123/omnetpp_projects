@@ -691,6 +691,10 @@ void ChannelController::initializeGSL(){
             gslConnectionMap[std::make_pair(satelliteName, groundStationName)] = satToGroundLink;
         }
     }
+    for(int groundIndex = 0; groundIndex < this->groundStationNum; groundIndex++){
+        std::string groundStationName = std::string("GND") + std::to_string(groundIndex);
+        groundConnectedMap[groundStationName] = false;
+    }
 }
 
 void ChannelController::checkSatToOtherLink(cModule *srcSat){
@@ -712,8 +716,9 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
              throw cRuntimeError("Undefined gsl link!"); // NOLINT
          } else {
              Link& satToGroundLink = gslConnectionMap[moduleNamePair];
-             if(!satToGroundLink.initialized){
+             if((!satToGroundLink.initialized)&&(!groundConnectedMap[groundStationName])){
                  satToGroundLink.initialized = true;
+                 groundConnectedMap[groundStationName] = true;
                  satToGroundLink.los = addLineOfSight(satMobility->getLocatorNode(), groundNodeMobility->getLocatorNode(), 0);
                  satToGroundLink.state = 1;
                  createConnection(satToGroundLink);

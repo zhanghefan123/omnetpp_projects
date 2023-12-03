@@ -118,6 +118,7 @@ public:
     std::string gslChannelType;
     std::vector<Link> gslLinkList; // 所有的 link
     std::map<std::pair<std::string, std::string>, Link> gslConnectionMap; // [地面站名称] --- [卫星名称]
+    std::map<std::string, bool> groundConnectedMap;
     cModule* findClosestSatellite(GroundNodeMobility* groundNodeMobility);
     cModule* findClosestGroundStation(SatMobility* satMobility);
     void checkSatToOtherLink(cModule *srcSat);
