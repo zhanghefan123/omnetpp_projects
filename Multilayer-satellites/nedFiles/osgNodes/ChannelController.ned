@@ -49,6 +49,7 @@ simple ChannelController
 
     bool checkPolarEnter = default(false);
 
+    string gslType = default("");
     int satelliteNum = default(0);
     int groundStationNum = default(0);
 }
