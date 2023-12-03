@@ -36,5 +36,6 @@ module SatMobility extends MobilityBase
                 
         double updateInterval @unit(s) = default(10s); // the simulation time interval used to regularly signal mobility state changes and update the display
         bool faceForward = default(true);
+        checkSatToOtherLinkFlag = default(true);
         @class(SatMobility);      
 }
