@@ -35,13 +35,13 @@ channel SatToSat extends ThruputMeteringChannel
 }
 
 channel SatToSat_10Mbps extends SatToSat{
-
+    datarate = 10Mbps;
 }
 
 channel SatToSat_100Mbps extends SatToSat{
-
+    datarate = 100Mbps;
 }
 
 channel SatToSat_1Gbps extends SatToSat{
-
+    datarate = 1Gbps;
 }

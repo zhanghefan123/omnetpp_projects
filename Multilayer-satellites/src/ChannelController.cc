@@ -288,7 +288,9 @@ void ChannelController::refreshDisplay() const
                 // 添加星地链路
                 ++numSatToGround;
                 if (!satToGroundColor.empty())
-                    connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end, satToGroundWidth, osgEarth::Color(satToGroundColor)));
+                    connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end,
+                                                                                      satToGroundWidth,
+                                                                                      osgEarth::Color(satToGroundColor)));
                 break;
             }
             case 1:{  // 代表是星间链路
@@ -655,6 +657,9 @@ cModule* ChannelController::findClosestSatellite(GroundNodeMobility* groundNodeM
 }
 
 void ChannelController::initializeGSL(){
+    /**
+     * @brief initializeGSL 初始化星地链路
+     */
     // 遍历所有的卫星
     for(int satIndex = 0; satIndex < this->satelliteNum; satIndex++){
         std::string satelliteName = std::string("SAT") + std::to_string(satIndex);
@@ -666,14 +671,17 @@ void ChannelController::initializeGSL(){
             cModule* groundStation = this->getSystemModule()->getSubmodule(groundStationName.c_str());
             // 创建星地链路
             Link satToGroundLink;
+            satToGroundLink.initialized = false;
             satToGroundLink.srcMod = satellite;
             satToGroundLink.destMod = groundStation;
             satToGroundLink.los = nullptr;
             satToGroundLink.state = 0;
             satToGroundLink.channelType = cChannelType::get(this->gslChannelType.c_str());
-            satToGroundLink.gatePair = GatePair(satellite->gate("ethg", gslInterfaceIndex),
-                                                groundStation->gate("ethg", 0));
             satToGroundLink.linkInfo = std::string("gsl");
+            // 创建 gatepair
+            cGate* outputHalfFromSatellite = satellite->gateHalf("ethg", cGate::OUTPUT, gslInterfaceIndex);
+            cGate* outputHalfFromGroundStation = groundStation->gateHalf("ethg", cGate::OUTPUT, 0);
+            satToGroundLink.gatePair = GatePair(outputHalfFromSatellite, outputHalfFromGroundStation);
             // 将星地链路添加到星地链路列表之中
             gslConnectionMap[std::make_pair(satelliteName, groundStationName)] = satToGroundLink;
         }
@@ -689,17 +697,21 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
      cModule* groundStation = this->findClosestGroundStation(satMobility);
      if(groundStation == nullptr){
          std::cout << "could not establish link with any ground station" << std::endl;
+         // 找到之前的所有链路并进行删除
      } else {
+         GroundNodeMobility* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
          std::string groundStationName = groundStation->getFullName();
          std::string satelliteName = srcSat->getFullName();
          std::pair<std::string, std::string> moduleNamePair = std::make_pair(satelliteName, groundStationName);
          if(gslConnectionMap.find(moduleNamePair) == gslConnectionMap.end()){
-             throw cRuntimeError("Undefined destMobility!"); // NOLINT
+             throw cRuntimeError("Undefined gsl link!"); // NOLINT
          } else {
-             Link& link = gslConnectionMap[moduleNamePair];
-             if(link.state == 0){
-                 link.state = 1;
-                 createConnection(link);
+             Link& satToGroundLink = gslConnectionMap[moduleNamePair];
+             if(!satToGroundLink.initialized){
+                 satToGroundLink.initialized = true;
+                 satToGroundLink.los = addLineOfSight(satMobility->getLocatorNode(), groundNodeMobility->getLocatorNode(), 0);
+                 satToGroundLink.state = 1;
+                 createConnection(satToGroundLink);
              }
          }
      }

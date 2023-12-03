@@ -11,6 +11,7 @@
 using namespace omnetpp;
 typedef std::pair<cGate*,cGate*>  GatePair;
 typedef struct Link{
+    bool initialized;
     int state; // the link state
     cModule* srcMod; // source module
     cModule* destMod; // destination module
