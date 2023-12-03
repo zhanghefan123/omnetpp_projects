@@ -630,10 +630,15 @@ cModule* ChannelController::findClosestGroundStation(SatMobility* satMobility){
             groundSatellite = groundStation;
         }
     }
-    if(minDistance > satMobility->getHorizonDistance())
+    if(minDistance > satMobility->getHorizonDistance()){
+        std::cout << "not find closest ground station" << " min distance: " << minDistance << " " << " horizon distance: " << satMobility->getHorizonDistance() << std::endl;
         return nullptr;
-    else
+    }
+    else{
+        std::cout << "find closest ground station" << " min distance: " << minDistance << " " << " horizon distance: " << satMobility->getHorizonDistance() << std::endl;
         return groundSatellite;
+    }
+
 }
 
 cModule* ChannelController::findClosestSatellite(GroundNodeMobility* groundNodeMobility) {
