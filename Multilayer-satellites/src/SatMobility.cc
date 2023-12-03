@@ -217,6 +217,10 @@ void SatMobility::setOrbitNormal() {
     orbitY = normal ^ cross;
 }
 
+void SatMobility::setHorizontalDistance() {
+    double orbitRadius = earthRadius + altitude; // in kilometers
+    this->horizonDistance = std::sqrt(orbitRadius * orbitRadius - earthRadius * earthRadius) * 1000;
+}
 
 void SatMobility::initialize(int stage)
 {
@@ -233,6 +237,7 @@ void SatMobility::initialize(int stage)
         }
         case 1:{
             setOrbitNormal();
+            setHorizontalDistance();
             if(this->globalModule->startFromQtEnv)
             {
                 initializeScene();

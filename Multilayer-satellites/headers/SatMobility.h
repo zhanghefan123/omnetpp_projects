@@ -138,6 +138,8 @@ public:
 
     /** @brief handleMessage.*/
     void handleMessage(cMessage *msg) override;
+
+    void setHorizontalDistance();
 };
 
 #endif
