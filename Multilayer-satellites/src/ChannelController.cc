@@ -693,7 +693,7 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
      * @brief checkSatToOtherLink 检查卫星到地面站的链路
      * @param srcSat 卫星模块
      */
-     auto satMobility = dynamic_cast<SatMobility*>(srcSat);
+     auto satMobility = dynamic_cast<SatMobility*>(srcSat->getSubmodule("mobility"));
      cModule* groundStation = this->findClosestGroundStation(satMobility);
      if(groundStation == nullptr){
          std::cout << "could not establish link with any ground station" << std::endl;
