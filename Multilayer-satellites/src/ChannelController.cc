@@ -105,32 +105,33 @@ void ChannelController::initialize(int stage)
 }
 
 void ChannelController::checkSatToOtherLink(cModule *srcSat){
-    std::string srcMobiName = std::string(srcSat->getFullPath()) + std::string(".mobility");
-    auto *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
-    for(const auto &linkIndex:satToGroundStationsLinkMap[srcSat]){
-        bool connect = true;
-        double dis,maxDis;
-        std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
-        if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
-            auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition());
-            maxDis = srcMobi->getHorizonDistance();
-            if(dis > maxDis)  connect = false;
-        }else{
-            throw cRuntimeError("Undefined destMobility!"); // NOLINT
-        }
-        if(linkList[linkIndex].state == 1 && !connect){
-            linkList[linkIndex].state = 0;
-            disconnect(linkList[linkIndex]);
-            EV <<"Signal at T="<< simTime()<< " Disconnect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
-                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
-        }else if(linkList[linkIndex].state == 0 && connect){
-            linkList[linkIndex].state = 1;
-            createConnection(linkList[linkIndex]);
-            EV <<"Signal at T="<< simTime()<< " Connect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
-                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
-        }
-    }
+    std::cout << "check sat to other link" << std::endl;
+//    std::string srcMobiName = std::string(srcSat->getFullPath()) + std::string(".mobility");
+//    auto *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
+//    for(const auto &linkIndex:satToGroundStationsLinkMap[srcSat]){
+//        bool connect = true;
+//        double dis,maxDis;
+//        std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
+//        if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
+//            auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
+//            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition());
+//            maxDis = srcMobi->getHorizonDistance();
+//            if(dis > maxDis)  connect = false;
+//        }else{
+//            throw cRuntimeError("Undefined destMobility!"); // NOLINT
+//        }
+//        if(linkList[linkIndex].state == 1 && !connect){
+//            linkList[linkIndex].state = 0;
+//            disconnect(linkList[linkIndex]);
+//            EV <<"Signal at T="<< simTime()<< " Disconnect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
+//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
+//        }else if(linkList[linkIndex].state == 0 && connect){
+//            linkList[linkIndex].state = 1;
+//            createConnection(linkList[linkIndex]);
+//            EV <<"Signal at T="<< simTime()<< " Connect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
+//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
+//        }
+//    }
 }
 
 void ChannelController::addSatToOtherLink(const cXMLElement *node){

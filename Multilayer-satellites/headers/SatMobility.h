@@ -51,7 +51,9 @@ class SatMobility : public MobilityBase
     GlobalModule* globalModule = nullptr;
     ChannelController* controller = nullptr;
     bool shouldCheckPolarAreaEnter = false;
+    bool checkSatToOtherLinkFlag = true;
 public:
+    void checkSatToOtherLink();
     void checkPolarAreaEntering();
     void setGlobalModule();
     void setChannelController();

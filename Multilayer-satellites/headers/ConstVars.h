@@ -80,6 +80,7 @@ namespace inet{
     // ------------------------------ gsl related ----------------------------------------
     const std::string PAR_SATELLITE_NUM = "satelliteNum";
     const std::string PAR_GROUND_STATION_NUM = "groundStationNum";
+    const std::string PAR_CHECK_SAT_TO_OTHER_LINK_FLAG = "checkSatToOtherLinkFlag";
     // ------------------------------ gsl related ----------------------------------------
 }
 #endif //DELAYTOLERANTNETWORK_CONSTVARS_H

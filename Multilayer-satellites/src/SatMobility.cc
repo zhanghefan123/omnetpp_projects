@@ -45,19 +45,27 @@ void SatMobility::setChannelController(){
 }
 
 void SatMobility::checkPolarAreaEntering() {
-    std::pair<double, double> currentLatitudeAndLongitude = getLatitudeAndLongitude();
-    double currentLatitude = currentLatitudeAndLongitude.first;
-    if(currentLatitude > 66.32 || currentLatitude < -66.32){
-        if(!currentInPolarArea){
-            currentInPolarArea = true;
-            this->controller->emit(enterPolarAreaSignal, this);
+    if(this->shouldCheckPolarAreaEnter){
+        std::pair<double, double> currentLatitudeAndLongitude = getLatitudeAndLongitude();
+        double currentLatitude = currentLatitudeAndLongitude.first;
+        if(currentLatitude > 66.32 || currentLatitude < -66.32){
+            if(!currentInPolarArea){
+                currentInPolarArea = true;
+                this->controller->emit(enterPolarAreaSignal, this);
+            }
+        }
+        else{
+            if(currentInPolarArea){
+                currentInPolarArea = false;
+                this->controller->emit(leavePolarAreaSignal, this);
+            }
         }
     }
-    else{
-        if(currentInPolarArea){
-            currentInPolarArea = false;
-            this->controller->emit(leavePolarAreaSignal, this);
-        }
+}
+
+void SatMobility::checkSatToOtherLink() {
+    if(this->checkSatToOtherLinkFlag){
+        this->controller->emit(checkSatToGroundSignal, this);
     }
 }
 
@@ -249,6 +257,7 @@ void SatMobility::initializePars(){
     display_coverage = par(PAR_DISPLAY_COVERAGE.c_str()).boolValue();
     orbitColor = par(PAR_ORBIT_COLOR.c_str()).stringValue();
     coneColor = par(PAR_CONE_COLOR.c_str()).stringValue();
+    checkSatToOtherLinkFlag = par(PAR_CHECK_SAT_TO_OTHER_LINK_FLAG.c_str()).stringValue();
 }
 
 void SatMobility::initializeScene() {
@@ -349,9 +358,8 @@ void SatMobility::refreshDisplay() const
     auto *satMobility = const_cast<SatMobility *>(this);
     satMobility->updatePosition();
     satMobility->setAppLabel();
-    if(this->shouldCheckPolarAreaEnter){
-        satMobility->checkPolarAreaEntering();
-    }
+    satMobility->checkPolarAreaEntering();
+    satMobility->checkSatToOtherLink();
     getDisplayString().setTagArg("p", 0, long(300 + pos.x() / 100000));
     getDisplayString().setTagArg("p", 1, long(300 - pos.y() / 100000));
 }
