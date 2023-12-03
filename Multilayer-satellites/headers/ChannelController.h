@@ -114,6 +114,7 @@ protected:
 public:
     // --------------------- GSL related ---------------------
     int satelliteNum;
+    int groundStationNum;
     std::vector<Link> gslLinkList; // 所有的 link
     std::map<std::pair<std::string, std::string>, bool> gslConnectionMap; // [地面站名称] --- [卫星名称]
     cModule* findClosestSatellite(GroundNodeMobility* groundNodeMobility);

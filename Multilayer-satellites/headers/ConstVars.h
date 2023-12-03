@@ -76,5 +76,10 @@ namespace inet{
     // ------------------------------- check polar enter ---------------------------------
     const std::string PAR_CHECK_POLAR_ENTER = "checkPolarEnter";
     // ------------------------------- check polar enter ---------------------------------
+
+    // ------------------------------ gsl related ----------------------------------------
+    const std::string PAR_SATELLITE_NUM = "satelliteNum";
+    const std::string PAR_GROUND_STATION_NUM = "groundStationNum";
+    // ------------------------------ gsl related ----------------------------------------
 }
 #endif //DELAYTOLERANTNETWORK_CONSTVARS_H

@@ -50,4 +50,5 @@ simple ChannelController
     bool checkPolarEnter = default(false);
 
     int satelliteNum = default(0);
+    int groundStationNum = default(0);
 }

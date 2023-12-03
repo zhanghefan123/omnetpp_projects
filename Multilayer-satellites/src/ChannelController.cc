@@ -80,6 +80,9 @@ void ChannelController::initialize(int stage)
 
             checkPolarEnter = par(PAR_CHECK_POLAR_ENTER.c_str()).boolValue();
 
+            satelliteNum = int(par(PAR_SATELLITE_NUM.c_str()).intValue());
+            groundStationNum = int(par(PAR_GROUND_STATION_NUM.c_str()).intValue());
+
             break;
         }
         case 1:{
