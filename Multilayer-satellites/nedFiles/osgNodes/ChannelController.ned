@@ -48,4 +48,6 @@ simple ChannelController
     double calculateLinkFailureInterval = default(10);
 
     bool checkPolarEnter = default(false);
+
+    int satelliteNum = default(0);
 }

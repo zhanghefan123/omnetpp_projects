@@ -637,5 +637,20 @@ GatePair ChannelController::getGatePair(const cXMLElement *node)
     }
 }
 
+cModule* ChannelController::findClosestSatellite(GroundNodeMobility* groundNodeMobility) {
+    cModule* closestSatellite = nullptr;
+    double minDistance = INT_MAX;
+    for(int satIndex = 0; satIndex < this->satelliteNum; satIndex++){
+        std::string satelliteName = std::string("SAT") + std::to_string(satIndex);
+        cModule* satellite = this->getSystemModule()->getSubmodule(satelliteName.c_str());
+        auto* satMobility = dynamic_cast<SatMobility*>(satellite->getSubmodule("mobility"));
+        double distance = MultilayerTools::calculateDistance(groundNodeMobility->getCurrentPosition(), satMobility->getCurrentPosition());
+        if(distance < minDistance){
+            minDistance = distance;
+            closestSatellite = satellite;
+        }
+    }
+    return closestSatellite;
+}
 
 #endif

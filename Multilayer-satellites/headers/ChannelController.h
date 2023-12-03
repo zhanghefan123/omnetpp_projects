@@ -29,7 +29,6 @@
 #include "Link.h"
 
 
-
 /**
  * This module is responsible for tracking the distance of mobile nodes
  * and visualizing the connectivity graph using OSG nodes.
@@ -111,6 +110,14 @@ protected:
     void handleLinkDownEvent(cMessage* msg);
     void handleLinkUpEvent(cMessage* msg);
     void generateDownMessageForLink(Link& link);
+
+public:
+    // --------------------- GSL related ---------------------
+    int satelliteNum;
+    std::vector<Link> gslLinkList; // 所有的 link
+    std::map<std::pair<std::string, std::string>, bool> gslConnectionMap; // [地面站名称] --- [卫星名称]
+    cModule* findClosestSatellite(GroundNodeMobility* groundNodeMobility);
+    // --------------------- GSL related ---------------------
 };
 
 #endif
