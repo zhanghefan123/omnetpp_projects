@@ -32,5 +32,16 @@ channel SatToSat extends ThruputMeteringChannel
 {
 	parameters:
     	@class(SatToSat);
+}
+
+channel SatToSat_10Mbps extends SatToSat{
+
+}
+
+channel SatToSat_100Mbps extends SatToSat{
+
+}
+
+channel SatToSat_1Gbps extends SatToSat{
 
 }

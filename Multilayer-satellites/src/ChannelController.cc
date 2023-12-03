@@ -80,12 +80,14 @@ void ChannelController::initialize(int stage)
 
             checkPolarEnter = par(PAR_CHECK_POLAR_ENTER.c_str()).boolValue();
 
+            gslChannelType = par(PAR_GSL_TYPE.c_str()).stringValue();
             satelliteNum = int(par(PAR_SATELLITE_NUM.c_str()).intValue());
             groundStationNum = int(par(PAR_GROUND_STATION_NUM.c_str()).intValue());
 
             break;
         }
         case 1:{
+            initializeGSL();
             scene = OsgEarthScene::getInstance()->getScene()->asGroup();
             connections = new osg::Geode();
             scene->addChild(connections);
@@ -104,35 +106,7 @@ void ChannelController::initialize(int stage)
     }
 }
 
-void ChannelController::checkSatToOtherLink(cModule *srcSat){
-    std::cout << "check sat to other link" << std::endl;
-//    std::string srcMobiName = std::string(srcSat->getFullPath()) + std::string(".mobility");
-//    auto *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
-//    for(const auto &linkIndex:satToGroundStationsLinkMap[srcSat]){
-//        bool connect = true;
-//        double dis,maxDis;
-//        std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
-//        if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
-//            auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-//            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition());
-//            maxDis = srcMobi->getHorizonDistance();
-//            if(dis > maxDis)  connect = false;
-//        }else{
-//            throw cRuntimeError("Undefined destMobility!"); // NOLINT
-//        }
-//        if(linkList[linkIndex].state == 1 && !connect){
-//            linkList[linkIndex].state = 0;
-//            disconnect(linkList[linkIndex]);
-//            EV <<"Signal at T="<< simTime()<< " Disconnect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
-//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
-//        }else if(linkList[linkIndex].state == 0 && connect){
-//            linkList[linkIndex].state = 1;
-//            createConnection(linkList[linkIndex]);
-//            EV <<"Signal at T="<< simTime()<< " Connect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
-//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
-//        }
-//    }
-}
+
 
 void ChannelController::addSatToOtherLink(const cXMLElement *node){
     /**
@@ -641,20 +615,120 @@ GatePair ChannelController::getGatePair(const cXMLElement *node)
     }
 }
 
+cModule* ChannelController::findClosestGroundStation(SatMobility* satMobility){
+    cModule* groundSatellite = nullptr;
+    double minDistance = INT_MAX;
+    for(int groundIndex = 0; groundIndex < this->groundStationNum; groundIndex++){
+        std::string groundStationName = std::string("GND") + std::to_string(groundIndex);
+        cModule* groundStation = this->getSystemModule()->getSubmodule(groundStationName.c_str());
+        auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
+        double distance = MultilayerTools::calculateDistance(satMobility->getCurrentPosition(), groundNodeMobility->getCurrentPosition());
+        if(distance < minDistance){
+            minDistance = distance;
+            groundSatellite = groundStation;
+        }
+    }
+    if(minDistance > satMobility->getHorizonDistance())
+        return nullptr;
+    else
+        return groundSatellite;
+}
+
 cModule* ChannelController::findClosestSatellite(GroundNodeMobility* groundNodeMobility) {
     cModule* closestSatellite = nullptr;
     double minDistance = INT_MAX;
+    SatMobility* satMobility = nullptr;
     for(int satIndex = 0; satIndex < this->satelliteNum; satIndex++){
         std::string satelliteName = std::string("SAT") + std::to_string(satIndex);
         cModule* satellite = this->getSystemModule()->getSubmodule(satelliteName.c_str());
-        auto* satMobility = dynamic_cast<SatMobility*>(satellite->getSubmodule("mobility"));
+        satMobility = dynamic_cast<SatMobility*>(satellite->getSubmodule("mobility"));
         double distance = MultilayerTools::calculateDistance(groundNodeMobility->getCurrentPosition(), satMobility->getCurrentPosition());
         if(distance < minDistance){
             minDistance = distance;
             closestSatellite = satellite;
         }
     }
-    return closestSatellite;
+    if(minDistance > satMobility->getHorizonDistance())
+        return nullptr;
+    else
+        return closestSatellite;
+}
+
+void ChannelController::initializeGSL(){
+    // 遍历所有的卫星
+    for(int satIndex = 0; satIndex < this->satelliteNum; satIndex++){
+        std::string satelliteName = std::string("SAT") + std::to_string(satIndex);
+        cModule* satellite = this->getSystemModule()->getSubmodule(satelliteName.c_str());
+        int gateSize = satellite->gateSize("ethg");
+        int gslInterfaceIndex = gateSize - 1;
+        for(int groundIndex = 0; groundIndex < this->groundStationNum; groundIndex++){
+            std::string groundStationName = std::string("GND" ) + std::to_string(groundIndex);
+            cModule* groundStation = this->getSystemModule()->getSubmodule(groundStationName.c_str());
+            // 创建星地链路
+            Link satToGroundLink;
+            satToGroundLink.srcMod = satellite;
+            satToGroundLink.destMod = groundStation;
+            satToGroundLink.los = nullptr;
+            satToGroundLink.state = 0;
+            satToGroundLink.channelType = cChannelType::get(this->gslChannelType.c_str());
+            satToGroundLink.gatePair = GatePair(satellite->gate("ethg", gslInterfaceIndex),
+                                                groundStation->gate("ethg", 0));
+            satToGroundLink.linkInfo = std::string("gsl");
+            // 将星地链路添加到星地链路列表之中
+            gslConnectionMap[std::make_pair(satelliteName, groundStationName)] = satToGroundLink;
+        }
+    }
+}
+
+void ChannelController::checkSatToOtherLink(cModule *srcSat){
+    /**
+     * @brief checkSatToOtherLink 检查卫星到地面站的链路
+     * @param srcSat 卫星模块
+     */
+     auto satMobility = dynamic_cast<SatMobility*>(srcSat);
+     cModule* groundStation = this->findClosestGroundStation(satMobility);
+     if(groundStation == nullptr){
+         std::cout << "could not establish link with any ground station" << std::endl;
+     } else {
+         std::string groundStationName = groundStation->getFullName();
+         std::string satelliteName = srcSat->getFullName();
+         std::pair<std::string, std::string> moduleNamePair = std::make_pair(satelliteName, groundStationName);
+         if(gslConnectionMap.find(moduleNamePair) == gslConnectionMap.end()){
+             throw cRuntimeError("Undefined destMobility!"); // NOLINT
+         } else {
+             Link& link = gslConnectionMap[moduleNamePair];
+             if(link.state == 0){
+                 link.state = 1;
+                 createConnection(link);
+             }
+         }
+     }
+//    std::string srcMobiName = std::string(srcSat->getFullPath()) + std::string(".mobility");
+//    auto *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
+//    for(const auto &linkIndex:satToGroundStationsLinkMap[srcSat]){
+//        bool connect = true;
+//        double dis,maxDis;
+//        std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
+//        if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
+//            auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
+//            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition());
+//            maxDis = srcMobi->getHorizonDistance();
+//            if(dis > maxDis)  connect = false;
+//        }else{
+//            throw cRuntimeError("Undefined destMobility!"); // NOLINT
+//        }
+//        if(linkList[linkIndex].state == 1 && !connect){
+//            linkList[linkIndex].state = 0;
+//            disconnect(linkList[linkIndex]);
+//            EV <<"Signal at T="<< simTime()<< " Disconnect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
+//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
+//        }else if(linkList[linkIndex].state == 0 && connect){
+//            linkList[linkIndex].state = 1;
+//            createConnection(linkList[linkIndex]);
+//            EV <<"Signal at T="<< simTime()<< " Connect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
+//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
+//        }
+//    }
 }
 
 #endif

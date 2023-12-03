@@ -44,3 +44,18 @@ channel SatToGround extends ThruputMeteringChannel
 {
 
 }
+
+channel SatToGround_10Mbps extends SatToGround
+{
+    datarate = 10Mbps;
+}
+
+channel SatToGround_100Mbps extends SatToGround
+{
+    datarate = 100Mbps;
+}
+
+channel SatToGround_1Gbps extends SatToGround
+{
+    datarate = 1Gbps;
+}

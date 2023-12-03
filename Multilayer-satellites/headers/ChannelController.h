@@ -92,7 +92,7 @@ protected:
     void loadXMLConfig();
     void addSatToSatLink(const cXMLElement *node);
     static void createConnection(Link &link);
-    void checkSatToOtherLink(cModule *srcSat);
+
     void addSatToOtherLink(const cXMLElement *node);
     static void disconnect(Link &link);
     osgEarth::Util::LinearLineOfSightNode *addLineOfSight(osg::Node *a, osg::Node *b, int type);
@@ -115,9 +115,13 @@ public:
     // --------------------- GSL related ---------------------
     int satelliteNum;
     int groundStationNum;
+    std::string gslChannelType;
     std::vector<Link> gslLinkList; // 所有的 link
-    std::map<std::pair<std::string, std::string>, bool> gslConnectionMap; // [地面站名称] --- [卫星名称]
+    std::map<std::pair<std::string, std::string>, Link> gslConnectionMap; // [地面站名称] --- [卫星名称]
     cModule* findClosestSatellite(GroundNodeMobility* groundNodeMobility);
+    cModule* findClosestGroundStation(SatMobility* satMobility);
+    void checkSatToOtherLink(cModule *srcSat);
+    void initializeGSL();
     // --------------------- GSL related ---------------------
 };
 
