@@ -257,7 +257,7 @@ void SatMobility::initializePars(){
     display_coverage = par(PAR_DISPLAY_COVERAGE.c_str()).boolValue();
     orbitColor = par(PAR_ORBIT_COLOR.c_str()).stringValue();
     coneColor = par(PAR_CONE_COLOR.c_str()).stringValue();
-    checkSatToOtherLinkFlag = par(PAR_CHECK_SAT_TO_OTHER_LINK_FLAG.c_str()).stringValue();
+    checkSatToOtherLinkFlag = par(PAR_CHECK_SAT_TO_OTHER_LINK_FLAG.c_str()).boolValue();
 }
 
 void SatMobility::initializeScene() {
