@@ -331,14 +331,16 @@ void ChannelController::refreshDisplay() const
     }
 
     // draw gsls
-    for(const auto link : gslConnectionMap){
-        if (link.second.los != nullptr){
-            // 获取链路的起始点和终止点
-            auto start = link.second.los->getStartWorld();
-            auto end = link.second.los->getEndWorld();
-            connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end,
-                                                                              satToGroundWidth,
-                                                                              osgEarth::Color(satToGroundColor)));
+    for(const auto& outer : gslConnectionMap){
+        for(const auto& inner : outer.second){
+            if (inner.second.los != nullptr){
+                // 获取链路的起始点和终止点
+                auto start = inner.second.los->getStartWorld();
+                auto end = inner.second.los->getEndWorld();
+                connections->addDrawable(MultilayerTools::createLineBetweenPoints(start, end,
+                                                                                  satToGroundWidth,
+                                                                                  osgEarth::Color(satToGroundColor)));
+            }
         }
     }
 }
@@ -700,12 +702,9 @@ void ChannelController::initializeGSL(){
             cGate* outputHalfFromGroundStation = groundStation->gateHalf("ethg", cGate::OUTPUT, 0);
             satToGroundLink.gatePair = GatePair(outputHalfFromSatellite, outputHalfFromGroundStation);
             // 将星地链路添加到星地链路列表之中
-            gslConnectionMap[std::make_pair(satelliteName, groundStationName)] = satToGroundLink;
+            gslConnectionMap[satelliteName][groundStationName] = satToGroundLink;
         }
-    }
-    for(int groundIndex = 0; groundIndex < this->groundStationNum; groundIndex++){
-        std::string groundStationName = std::string("GND") + std::to_string(groundIndex);
-        groundConnectedMap[groundStationName] = false;
+        connectedGroundList[satelliteName] = {};
     }
 }
 
@@ -716,53 +715,35 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
      */
      auto satMobility = dynamic_cast<SatMobility*>(srcSat->getSubmodule("mobility"));
      cModule* groundStation = this->findClosestGroundStation(satMobility);
+     std::string satelliteName = srcSat->getFullName();
      if(groundStation == nullptr){
          std::cout << "could not establish link with any ground station" << std::endl;
          // 找到之前的所有链路并进行删除
      } else {
-         GroundNodeMobility* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
+         auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
          std::string groundStationName = groundStation->getFullName();
-         std::string satelliteName = srcSat->getFullName();
-         std::pair<std::string, std::string> moduleNamePair = std::make_pair(satelliteName, groundStationName);
-         if(gslConnectionMap.find(moduleNamePair) == gslConnectionMap.end()){
-             throw cRuntimeError("Undefined gsl link!"); // NOLINT
-         } else {
-             Link& satToGroundLink = gslConnectionMap[moduleNamePair];
-             if((!satToGroundLink.initialized)&&(!groundConnectedMap[groundStationName])){
-                 satToGroundLink.initialized = true;
-                 groundConnectedMap[groundStationName] = true;
-                 satToGroundLink.los = addLineOfSight(satMobility->getLocatorNode(), groundNodeMobility->getLocatorNode(), 0);
-                 satToGroundLink.state = 1;
-                 createConnection(satToGroundLink);
-             }
+         Link& satToGroundLink = gslConnectionMap[satelliteName][groundStationName];
+         bool inConnectedGroundList = connectedGroundList[satelliteName].find(groundStationName) != connectedGroundList[satelliteName].end();
+         if((!satToGroundLink.initialized)&&(!inConnectedGroundList)){
+             satToGroundLink.initialized = true;
+             connectedGroundList[satelliteName].insert(groundStationName);
+             satToGroundLink.los = addLineOfSight(satMobility->getLocatorNode(), groundNodeMobility->getLocatorNode(), 0);
+             satToGroundLink.state = 1;
+             createConnection(satToGroundLink);
          }
      }
-//    std::string srcMobiName = std::string(srcSat->getFullPath()) + std::string(".mobility");
-//    auto *srcMobi = check_and_cast<SatMobility*>(getModuleByPath(srcMobiName.c_str()));
-//    for(const auto &linkIndex:satToGroundStationsLinkMap[srcSat]){
-//        bool connect = true;
-//        double dis,maxDis;
-//        std::string destMobiName = std::string(linkList[linkIndex].destMod->getFullName()) + std::string(".mobility");
-//        if(dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str())) != nullptr){
-//            auto *destMobi = dynamic_cast<GroundNodeMobility*>(getModuleByPath(destMobiName.c_str()));
-//            dis = MultilayerTools::calculateDistance(srcMobi->getCurrentPosition(),destMobi->getCurrentPosition());
-//            maxDis = srcMobi->getHorizonDistance();
-//            if(dis > maxDis)  connect = false;
-//        }else{
-//            throw cRuntimeError("Undefined destMobility!"); // NOLINT
-//        }
-//        if(linkList[linkIndex].state == 1 && !connect){
-//            linkList[linkIndex].state = 0;
-//            disconnect(linkList[linkIndex]);
-//            EV <<"Signal at T="<< simTime()<< " Disconnect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
-//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
-//        }else if(linkList[linkIndex].state == 0 && connect){
-//            linkList[linkIndex].state = 1;
-//            createConnection(linkList[linkIndex]);
-//            EV <<"Signal at T="<< simTime()<< " Connect the link between "<< linkList[linkIndex].srcMod->getFullPath() << " and "
-//                    << linkList[linkIndex].destMod->getFullPath() << " Dis = "<< dis <<",MaxDis = "<< maxDis <<endl;
-//        }
-//    }
+     // 遍历这个卫星所有的已处于连接的链路
+     for(const std::string& groundStationName : connectedGroundList[satelliteName])
+     {
+        Link& satToGroundLink = gslConnectionMap[satelliteName][groundStationName];
+        auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
+        double distance = MultilayerTools::calculateDistance(satMobility->getCurrentPosition(), groundNodeMobility->getCurrentPosition());
+        if(distance > satMobility->getHorizonDistance()){
+            satToGroundLink.state = 0;
+            disconnect(satToGroundLink);
+            connectedGroundList[satelliteName].erase(groundStationName);
+        }
+     }
 }
 
 #endif
