@@ -706,6 +706,11 @@ void ChannelController::initializeGSL(){
         }
         connectedGroundList[satelliteName] = {};
     }
+    for(int groundIndex; groundIndex < this->groundStationNum; groundIndex++)
+    {
+        std::string groundStationName = std::string("GND") + std::to_string(groundIndex);
+        isGroundConnectedMap[groundStationName] = false;
+    }
 }
 
 void ChannelController::checkSatToOtherLink(cModule *srcSat){
@@ -724,9 +729,10 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
          std::string groundStationName = groundStation->getFullName();
          Link& satToGroundLink = gslConnectionMap[satelliteName][groundStationName];
          bool inConnectedGroundList = connectedGroundList[satelliteName].find(groundStationName) != connectedGroundList[satelliteName].end();
-         if((!satToGroundLink.initialized)&&(!inConnectedGroundList)){
+         if((!satToGroundLink.initialized)&& (!isGroundConnectedMap[groundStationName])&&(!inConnectedGroundList)){
              satToGroundLink.initialized = true;
              connectedGroundList[satelliteName].insert(groundStationName);
+             isGroundConnectedMap[groundStationName] = true;
              satToGroundLink.los = addLineOfSight(satMobility->getLocatorNode(), groundNodeMobility->getLocatorNode(), 0);
              satToGroundLink.state = 1;
              createConnection(satToGroundLink);
