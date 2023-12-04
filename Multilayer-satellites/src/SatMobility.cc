@@ -219,7 +219,7 @@ void SatMobility::setOrbitNormal() {
 
 void SatMobility::setHorizontalDistance() {
     double orbitRadius = earthRadius + altitude; // in kilometers
-    this->horizonDistance = std::sqrt(orbitRadius * orbitRadius - earthRadius * earthRadius) * 1000;
+    this->horizonDistance = std::sqrt(orbitRadius * orbitRadius - earthRadius * earthRadius) * 1500;
 }
 
 void SatMobility::initialize(int stage)
