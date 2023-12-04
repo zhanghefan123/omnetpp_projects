@@ -739,17 +739,18 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
          }
      }
      // 遍历这个卫星所有的已处于连接的链路
-     for(const std::string& groundStationName : connectedGroundList[satelliteName])
-     {
-        Link& satToGroundLink = gslConnectionMap[satelliteName][groundStationName];
-         cModule* groundStationModule = this->getSystemModule()->getSubmodule(groundStationName.c_str());
-        auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStationModule->getSubmodule("mobility"));
-        double distance = MultilayerTools::calculateDistance(satMobility->getCurrentPosition(), groundNodeMobility->getCurrentPosition());
-        if(distance > satMobility->getHorizonDistance()){
-            satToGroundLink.state = 0;
-            disconnect(satToGroundLink);
-            connectedGroundList[satelliteName].erase(groundStationName);
-        }
+     for(auto iter = connectedGroundList[satelliteName].begin(); iter != connectedGroundList[satelliteName].end(); iter++){
+         const std::string& groundStationName = *iter;
+         auto* groundStationModule = this->getSystemModule()->getSubmodule(groundStationName.c_str());
+         auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStationModule->getSubmodule("mobility"));
+         Link& satToGroundLink = gslConnectionMap[satelliteName][groundStationName];
+         double distance = MultilayerTools::calculateDistance(satMobility->getCurrentPosition(), groundNodeMobility->getCurrentPosition());
+         if(distance > satMobility->getHorizonDistance()){
+             satToGroundLink.state = 0;
+             disconnect(satToGroundLink);
+             connectedGroundList[satelliteName].erase(groundStationName);
+             isGroundConnectedMap[groundStationName] = false;
+         }
      }
 }
 
