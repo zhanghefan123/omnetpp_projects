@@ -645,7 +645,7 @@ cModule* ChannelController::findClosestGroundStation(SatMobility* satMobility){
         }
     }
     if(minDistance > satMobility->getHorizonDistance()){
-        std::cout << "not find closest ground station" << " min distance: " << minDistance << " " << " horizon distance: " << satMobility->getHorizonDistance() << std::endl;
+        // std::cout << "not find closest ground station" << " min distance: " << minDistance << " " << " horizon distance: " << satMobility->getHorizonDistance() << std::endl;
         return nullptr;
     }
     else{
@@ -717,7 +717,7 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
      cModule* groundStation = this->findClosestGroundStation(satMobility);
      std::string satelliteName = srcSat->getFullName();
      if(groundStation == nullptr){
-         std::cout << "could not establish link with any ground station" << std::endl;
+         // std::cout << "could not establish link with any ground station" << std::endl;
          // 找到之前的所有链路并进行删除
      } else {
          auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
