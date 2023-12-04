@@ -333,7 +333,7 @@ void ChannelController::refreshDisplay() const
     // draw gsls
     for(const auto& outer : gslConnectionMap){
         for(const auto& inner : outer.second){
-            if (inner.second.los != nullptr){
+            if ((inner.second.los != nullptr) && (inner.second.state != 0)){
                 // 获取链路的起始点和终止点
                 auto start = inner.second.los->getStartWorld();
                 auto end = inner.second.los->getEndWorld();
@@ -706,7 +706,7 @@ void ChannelController::initializeGSL(){
         }
         connectedGroundList[satelliteName] = {};
     }
-    for(int groundIndex; groundIndex < this->groundStationNum; groundIndex++)
+    for(int groundIndex = 0; groundIndex < this->groundStationNum; groundIndex++)
     {
         std::string groundStationName = std::string("GND") + std::to_string(groundIndex);
         isGroundConnectedMap[groundStationName] = false;
@@ -739,7 +739,7 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
          }
      }
      // 遍历这个卫星所有的已处于连接的链路
-     for(auto iter = connectedGroundList[satelliteName].begin(); iter != connectedGroundList[satelliteName].end(); iter++){
+     for(auto iter = connectedGroundList[satelliteName].begin(); iter != connectedGroundList[satelliteName].end(); ){
          const std::string& groundStationName = *iter;
          auto* groundStationModule = this->getSystemModule()->getSubmodule(groundStationName.c_str());
          auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStationModule->getSubmodule("mobility"));
@@ -748,8 +748,10 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
          if(distance > satMobility->getHorizonDistance()){
              satToGroundLink.state = 0;
              disconnect(satToGroundLink);
-             connectedGroundList[satelliteName].erase(groundStationName);
              isGroundConnectedMap[groundStationName] = false;
+             iter = connectedGroundList[satelliteName].erase(iter);
+         } else {
+             ++iter;
          }
      }
 }
