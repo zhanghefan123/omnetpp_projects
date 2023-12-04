@@ -742,7 +742,8 @@ void ChannelController::checkSatToOtherLink(cModule *srcSat){
      for(const std::string& groundStationName : connectedGroundList[satelliteName])
      {
         Link& satToGroundLink = gslConnectionMap[satelliteName][groundStationName];
-        auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStation->getSubmodule("mobility"));
+         cModule* groundStationModule = this->getSystemModule()->getSubmodule(groundStationName.c_str());
+        auto* groundNodeMobility = dynamic_cast<GroundNodeMobility*>(groundStationModule->getSubmodule("mobility"));
         double distance = MultilayerTools::calculateDistance(satMobility->getCurrentPosition(), groundNodeMobility->getCurrentPosition());
         if(distance > satMobility->getHorizonDistance()){
             satToGroundLink.state = 0;
