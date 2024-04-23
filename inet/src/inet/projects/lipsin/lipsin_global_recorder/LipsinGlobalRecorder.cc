@@ -54,7 +54,13 @@ namespace inet {
             ss << "max forward count: " << this->maxForwardCount << std::endl;
             ss << "avg false positive rate: " << this->sumFalsePositiveRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
             ss << "encapsulation node count: " << this->encapsulationNodeCount << std::endl; // 25-26 26-27 27-28 28-29 29-30
-            ss << "time consumption: " << (this->encapsulationNodeCount * (0.01) + ((this->redundantForwardCount * (8000 + this->optimizedBloomFilterSize) + this->totalReceivedPackets * 5 * (222)) / double(10*1000)) ) / this->totalReceivedPackets << std::endl; // 10 microseconds --> 10-2 miliseconds
+            // ((encapsulation count) * 0.00001 * 1000 + redundantforwardcount * (payload + bloomfiltersize) + (total received packets) * (single packet forward count) * (bloom filter size)) / receive packet count
+            ss << "time consumption: " << (this->encapsulationNodeCount * (0.01) + ((this->redundantForwardCount * (8000 + this->optimizedBloomFilterSize) + this->totalReceivedPackets * (this->forwardCount) * (this->optimizedBloomFilterSize)) / double(10*1000)) ) / this->totalReceivedPackets << std::endl; // 10 microseconds --> 10-2 miliseconds
+            ss << "encapsulationNodeCount:" << this->encapsulationNodeCount << " "
+            << "redundant foward count: "  << this->redundantForwardCount << " "
+            << "optimized bloom filter size: " << this->optimizedBloomFilterSize << " "
+            << " " << "forward count: "  << this->forwardCount << " "
+            << " " << "totalReceivedPackets: " << this->totalReceivedPackets << std::endl;
             ss << std::endl;
         }else{
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
@@ -124,6 +130,9 @@ namespace inet {
                     this->avgLipsinQueueingDelaySum += receiveRecorder->averageQueueingDelay;
                     this->totalLipsinReceiver += 1;
                     this->encapsulationNodeCount += receiveRecorder->encapsulationNodeCount;
+                    if(this->forwardCount == 0){
+                        this->forwardCount = receiveRecorder->forwardCount;
+                    }
                 }
                 // judge if the satellite module has sender
                 auto* sender = dynamic_cast<LipsinSender*>(satelliteModule->getSubmodule("lipsinSender"));

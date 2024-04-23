@@ -24,6 +24,7 @@ public:
     std::string transmissionPattern;
     int redundantForwardCount = 0;
     int totalReceivedPackets = 0;
+    int forwardCount = 0;
     int totalSendPackets = 0;
     int satelliteNum = 0;
 

@@ -110,7 +110,6 @@ namespace inet {
             this->recorder->averageQueueingDelay = (this->recorder->queueingDelay / this->recorder->packetReceivedCount);
             // ---------------------------update delay related-----------------------------------------
 
-
             // update the encapsulationNodeCount
             this->recorder->encapsulationNodeCount += pathHeader->encapsulationNodeCount;
             // update the receive size
@@ -118,6 +117,9 @@ namespace inet {
             // update the throughput
             this->recorder->throughput = this->recorder->totalReceivedSize * 8 /
                                          ((simTime().dbl() - this->recorder->startTime) * 1000 * 1000);
+            if(this->recorder->forwardCount == 0){
+                this->recorder->forwardCount = pathHeader->getSourceDecideLinkSet()->getLinkSetSize();
+            }
         }
     }
 

@@ -460,9 +460,9 @@ void ChannelController::initializeAllEvents(){
     calculateLinkFailureEvent = new cMessage(MSG_CALCULATE_LINK_FAILURE.c_str());
     scheduleAt(simTime() + calculateLinkFailureInterval, calculateLinkFailureEvent);
 
-    updatePositionInterval = this->par(PAR_UPDATE_POSITION_INTERVAL.c_str()).doubleValue();
-    updatePositionEvent = new cMessage(MSG_UPDATE_POSITION.c_str());
-    scheduleAt(simTime() + updatePositionInterval, updatePositionEvent);
+//    updatePositionInterval = this->par(PAR_UPDATE_POSITION_INTERVAL.c_str()).doubleValue();
+//    updatePositionEvent = new cMessage(MSG_UPDATE_POSITION.c_str());
+//    scheduleAt(simTime() + updatePositionInterval, updatePositionEvent);
 }
 
 void ChannelController::handleLinkFailureCalculateEvent(omnetpp::cMessage *msg) {

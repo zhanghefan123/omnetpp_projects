@@ -475,7 +475,6 @@ namespace inet {
             lipsinHeader->setChunkLength(b(this->bloomFilterSize));
             // calculate encoding nodes
             if(enableOptimalEncoding){
-
                 std::deque<int> encapsulationHops = {};
                 encapsulationHops = OptimalEncoding::calculateEncodingNodes(1000 * 8, this->numberOfHashFunctions, int(routes.size()), 10 * 1000 * 1000, 0.00001);
                 pathHeader->encapsulationNodeCount = int(encapsulationHops.size());
@@ -483,12 +482,12 @@ namespace inet {
                 encapsulationHops.pop_front();
                 int nextIntermediateNode = routes[encapsulationCount-1]->getDest();
                 // find optimal M for encapsulation Hops
-                // int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, encapsulationCount);
-                // this->globalRecorder->optimizedBloomFilterSize = optimalM;
+                int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, encapsulationCount);
+                this->globalRecorder->optimizedBloomFilterSize = optimalM;
                 // std::cout << "optimalM = " << optimalM << std::endl;
                 // create real lids bloom filter
                 // ---------------------------------------------------------------------------------------------
-                realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
+                realLidsBf = new BloomFilter(optimalM, this->numberOfHashFunctions, seed);
                 lipsinHeader->setRealLidsBf(realLidsBf);
                 // ---------------------------------------------------------------------------------------------
                 while(!encapsulationHops.empty()){
@@ -516,10 +515,10 @@ namespace inet {
             } else {
                 // create real lids bloom filter
                 // ---------------------------------------------------------------------------------------------
-                // int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, routes.size());
-                // this->globalRecorder->optimizedBloomFilterSize = optimalM;
+                int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, routes.size());
+                this->globalRecorder->optimizedBloomFilterSize = optimalM;
                 pathHeader->encapsulationNodeCount = 1;
-                realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
+                realLidsBf = new BloomFilter(optimalM, this->numberOfHashFunctions, seed);
                 lipsinHeader->setRealLidsBf(realLidsBf);
                 lipsinHeader->setIntermediateNode(-1);
                 // ---------------------------------------------------------------------------------------------
