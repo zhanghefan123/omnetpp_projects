@@ -44,31 +44,31 @@ namespace inet {
      */
     void LipsinSender::finish() {
         // if no response packet received, we do not need to write the statistics
-        if (this->transmissionPattern == TransmissionPattern::UNICAST) {
-            std::stringstream ss;
-            std::ofstream countFile;
-            ss << "received packet count: " << this->recorder->packetReceivedCount << std::endl;
-            ss << "received packet size: " << this->recorder->totalReceivedSize << " Bytes" << std::endl;
-            ss << "throughput: " << this->recorder->throughput << " Mbps" << std::endl;
-            ss << "ratio: " << this->recorder->transmissionRatio << " %" << std::endl;
-            ss << "total delay: " << this->recorder->sumDelay << " s" << std::endl;
-            ss << "average delay: " << this->recorder->averageDelay << " s" << std::endl;
-            std::string outputFileName = this->getParentModule()->getFullName() + std::string("_sender") + std::string("_statistic.txt");
-            countFile.open(outputFileName, std::ios::out | std::ios::trunc);
-            countFile.write(ss.str().c_str(), int(ss.str().length()));
-            countFile.close();
-        } else if ((this->transmissionPattern == TransmissionPattern::MULTI_UNICAST) ||
-                   (this->transmissionPattern == TransmissionPattern::MULTICAST)) {
-            // we should record the packet we send
-            std::stringstream ss;
-            std::ofstream countFile;
-            ss << "send packet number: " << this->recorder->packetSentCount << std::endl;
-            std::string outputFileName = this->getParentModule()->getFullName() + std::string("_sender") +std::string("_statistic.txt");
-            countFile.open(outputFileName, std::ios::out | std::ios::trunc);
-            countFile.write(ss.str().c_str(), int(ss.str().length()));
-        } else {
-            throw cRuntimeError("unknown transmission pattern"); // NOLINT
-        }
+//        if (this->transmissionPattern == TransmissionPattern::UNICAST) {
+//            std::stringstream ss;
+//            std::ofstream countFile;
+//            ss << "received packet count: " << this->recorder->packetReceivedCount << std::endl;
+//            ss << "received packet size: " << this->recorder->totalReceivedSize << " Bytes" << std::endl;
+//            ss << "throughput: " << this->recorder->throughput << " Mbps" << std::endl;
+//            ss << "ratio: " << this->recorder->transmissionRatio << " %" << std::endl;
+//            ss << "total delay: " << this->recorder->sumDelay << " s" << std::endl;
+//            ss << "average delay: " << this->recorder->averageDelay << " s" << std::endl;
+//            std::string outputFileName = this->getParentModule()->getFullName() + std::string("_sender") + std::string("_statistic.txt");
+//            countFile.open(outputFileName, std::ios::out | std::ios::trunc);
+//            countFile.write(ss.str().c_str(), int(ss.str().length()));
+//            countFile.close();
+//        } else if ((this->transmissionPattern == TransmissionPattern::MULTI_UNICAST) ||
+//                   (this->transmissionPattern == TransmissionPattern::MULTICAST)) {
+//            // we should record the packet we send
+//            std::stringstream ss;
+//            std::ofstream countFile;
+//            ss << "send packet number: " << this->recorder->packetSentCount << std::endl;
+//            std::string outputFileName = this->getParentModule()->getFullName() + std::string("_sender") +std::string("_statistic.txt");
+//            countFile.open(outputFileName, std::ios::out | std::ios::trunc);
+//            countFile.write(ss.str().c_str(), int(ss.str().length()));
+//        } else {
+//            throw cRuntimeError("unknown transmission pattern"); // NOLINT
+//        }
     }
     /**
      * load destination satellites xml
@@ -167,6 +167,7 @@ namespace inet {
         if(transmissionPatternStr == "UNICAST"){
             this->transmissionPattern = TransmissionPattern::UNICAST;
         } else if(transmissionPatternStr == "MULTICAST"){
+            std::cout << "transmission pattern = MULTICAST" << std::endl;
             this->transmissionPattern = TransmissionPattern::MULTICAST;
         } else if(transmissionPatternStr == "MULTI_UNICAST"){
             this->transmissionPattern = TransmissionPattern::MULTI_UNICAST;
@@ -225,6 +226,7 @@ namespace inet {
             double currentTime = simTime().dbl();
             if(this->stopTime > currentTime){
                 std::vector<Packet*> generatedPackets = generateNewPackets();
+                std::cout << "generate new packets" << std::endl;
                 // traverse all the generated packets
                 for(auto singlePacket : generatedPackets){
                     this->send(singlePacket, "appOut");
@@ -287,7 +289,18 @@ namespace inet {
                 }
                 return result;
             } else if(this->multicastPattern == MulticastPattern::SPF){
-                throw cRuntimeError("current not support this protocol"); // NOLINT
+                // traverse the multicast groups
+                for(const auto& item : this->multicastGroups){
+                    auto* packet = new Packet(LipsinConstVar::LIPSIN_MULTICAST_PACKET_NAME.c_str());
+                    // encapsulate the destination ids in single bloom filter
+                    encapsulateLipsin(packet, *(item.second), LipsinConstVar::LIPSIN_MULTICAST_PACKET_TYPE);
+                    // add protocol tag
+                    packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::lipsin_sender_app); // set packet protocol
+                    packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(&Protocol::lipsin_network); // next layer protocol
+                    // put the packet into the result
+                    result.push_back(packet);
+                }
+                return result;
             }
             else {
                 throw cRuntimeError("unknown multicast protocol"); // NOLINT
@@ -452,11 +465,19 @@ namespace inet {
         // ---------------------------------------------------------------------------------------------
         // insert according too the current transmission pattern
         if(this->transmissionPattern == TransmissionPattern::MULTICAST){
-            routes = lipsinRoutingTable->getMulticastRoutesByDestIds(destIds);
+            // std::cout << destIds << std::endl;
+            if(this->multicastPattern == MulticastPattern::PRIMARY){
+                routes = lipsinRoutingTable->getMulticastRoutesByDestIds(destIds);
+            } else if(this->multicastPattern == MulticastPattern::SPF){
+                routes = lipsinRoutingTable->getSPFMulticastRoutesByDestIds(destIds);
+            } else {
+                throw cRuntimeError("unsupported multicast pattern");
+            }
             // create real lids bloom filter
             // ---------------------------------------------------------------------------------------------
             realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
             lipsinHeader->setRealLidsBf(realLidsBf);
+            lipsinHeader->setIntermediateNode(-1);
             // ---------------------------------------------------------------------------------------------
             // traverse the link info and insert them
             for(auto& link: routes){
@@ -510,15 +531,18 @@ namespace inet {
                     lipsinHeader->setIntermediateNode(-1);
                 } else {
                     // lipsinHeader->setIntermediateNode(routes[i]->getSrc());
+
                     lipsinHeader->setIntermediateNode(nextIntermediateNode);
                 }
             } else {
                 // create real lids bloom filter
                 // ---------------------------------------------------------------------------------------------
-                int optimalM = OptimalEncoding::findOptimalM(1000*8, this->numberOfHashFunctions, routes.size());
-                this->globalRecorder->optimizedBloomFilterSize = optimalM;
+                // int optimalM = OptimalEncoding::findOptimalM(1024*8, this->numberOfHashFunctions, routes.size());
+                this->globalRecorder->optimizedBloomFilterSize = this->bloomFilterSize;
+                lipsinHeader->setChunkLength(b(this->bloomFilterSize));
+                std::cout << "bloom filter size:" << this->bloomFilterSize << std::endl;
                 pathHeader->encapsulationNodeCount = 1;
-                realLidsBf = new BloomFilter(optimalM, this->numberOfHashFunctions, seed);
+                realLidsBf = new BloomFilter(this->bloomFilterSize, this->numberOfHashFunctions, seed);
                 lipsinHeader->setRealLidsBf(realLidsBf);
                 lipsinHeader->setIntermediateNode(-1);
                 // ---------------------------------------------------------------------------------------------

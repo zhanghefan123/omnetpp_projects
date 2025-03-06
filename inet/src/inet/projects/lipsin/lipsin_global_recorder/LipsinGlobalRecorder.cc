@@ -44,6 +44,7 @@ namespace inet {
             ss << "lid Increase: " << lidIncrease << std::endl;
             ss << "redundant forward count: " << this->redundantForwardCount << std::endl;
             ss << "avg redundant forward count: " << double(this->redundantForwardCount) / double(this->totalSendPackets) << std::endl;
+            ss << "avg redudant foward count caused latency" << (double(this->redundantForwardCount) / double(this->totalSendPackets)) * this->singlePacketSize * 8 / (double(10 * 1024 * 1024)) * 1000 << "ms" << std::endl;
             ss << "total send packet count: " << this->totalSendPackets << std::endl;
             ss << "total received packet count: " << this->totalReceivedPackets << std::endl;
             ss << "avg throughput: " << this->avgLipsinThroughput << "Mbps" << std::endl;
@@ -55,7 +56,7 @@ namespace inet {
             ss << "avg false positive rate: " << this->sumFalsePositiveRate / double(this->totalSendPackets) * 100 << "%" << std::endl;
             ss << "encapsulation node count: " << this->encapsulationNodeCount << std::endl; // 25-26 26-27 27-28 28-29 29-30
             // ((encapsulation count) * 0.00001 * 1000 + redundantforwardcount * (payload + bloomfiltersize) + (total received packets) * (single packet forward count) * (bloom filter size)) / receive packet count
-            ss << "time consumption: " << (this->encapsulationNodeCount * (0.01) + ((this->redundantForwardCount * (8000 + this->optimizedBloomFilterSize) + this->totalReceivedPackets * (this->forwardCount) * (this->optimizedBloomFilterSize)) / double(10*1000)) ) / this->totalReceivedPackets << std::endl; // 10 microseconds --> 10-2 miliseconds
+            // ss << "time consumption: " << (this->encapsulationNodeCount * (0.01) + ((this->redundantForwardCount * (8000 + this->optimizedBloomFilterSize) + this->totalReceivedPackets * (this->forwardCount) * (this->optimizedBloomFilterSize)) / double(10*1000)) ) / this->totalReceivedPackets << std::endl; // 10 microseconds --> 10-2 miliseconds
             ss << "encapsulationNodeCount:" << this->encapsulationNodeCount << " "
             << "redundant foward count: "  << this->redundantForwardCount << " "
             << "optimized bloom filter size: " << this->optimizedBloomFilterSize << " "

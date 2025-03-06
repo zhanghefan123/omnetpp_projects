@@ -19,9 +19,9 @@ namespace inet{
 //            }
             // lipsinRoutingTable->persist();
             // recalculate the route by floyd - in order to get the arbitrary two nodes routes.
-            // this->reCalculateRouteByFloyd();
+            this->reCalculateRouteByFloyd();
             // add watches.
-            // this->addWatches();
+            this->addWatches();
         }
     }
 

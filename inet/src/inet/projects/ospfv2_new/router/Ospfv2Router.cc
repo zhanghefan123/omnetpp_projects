@@ -118,7 +118,7 @@ Ospfv2Interface *Router::getNonVirtualInterface(unsigned char ifIndex)
 
 bool Router::installLSA(const Ospfv2Lsa *lsa, AreaId areaID /*= BACKBONE_AREAID*/)
 {
-    std::cout << "install lsa: " << omnetpp::simTime().dbl() << std::endl;
+    // std::cout << "install lsa: " << omnetpp::simTime().dbl() << std::endl;
     switch (lsa->getHeader().getLsType()) {
         case ROUTERLSA_TYPE: {
             auto areaIt = areasByID.find(areaID);

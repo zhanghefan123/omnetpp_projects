@@ -43,7 +43,9 @@ module NetworkLayerNodeBase extends LinkLayerNodeBase
                 @display("p=525,376;q=queue");
         }
         lipsinNetworkLayer: <default("LipsinNetworkLayer")> like INetworkLayer if hasLipsin {
-
+            @display("p=849.128,375.004");
+        }
+        srNetworkLayer: <default("SRNetworkLayer")> like INetworkLayer if hasSR {
             @display("p=849.128,375.004");
         }
         generic: <default("")> like INetworkLayer if hasGn {
@@ -76,5 +78,8 @@ module NetworkLayerNodeBase extends LinkLayerNodeBase
         
         lipsinNetworkLayer.ifIn <-- nl.out++ if hasLipsin;
         lipsinNetworkLayer.ifOut --> nl.in++ if hasLipsin;
+
+        srNetworkLayer.ifIn <-- nl.out++ if hasSR;
+        srNetworkLayer.ifOut --> nl.in++ if hasSR;
 }
 

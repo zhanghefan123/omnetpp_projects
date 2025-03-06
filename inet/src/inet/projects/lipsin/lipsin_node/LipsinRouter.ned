@@ -40,7 +40,6 @@ module LipsinRouter extends Router
             @display("p=824.46375,222.5825");
         }
         lipsinReceiver: LipsinReceiver if hasLipsinReceiver {
-
             @display("p=974.3663,222.5825");
         }
         linkInfoTable: LinkInfoTable if hasLipsin {

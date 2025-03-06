@@ -74,6 +74,7 @@ ProtocolGroup ProtocolGroup::ethertype("ethertype", {
     { 0x0800, &Protocol::ipv4 },
     { 0x0806, &Protocol::arp },
     { 0x0807, &Protocol::lipsin_network},
+    { 0x0808, &Protocol::sr_network},
     { 0x2000, &Protocol::cdp },               // TODO remove it, it's a CISCO code for LLC, ANSAINET project use it currently
     { 0x22EA, &Protocol::srp },
     { 0x22F0, &Protocol::tsn },
@@ -124,6 +125,9 @@ ProtocolGroup ProtocolGroup::ipprotocol("ipprotocol", {
     { 91, &Protocol::lipsin_app}, // zhf add code for lipsin_app
     { 92,  &Protocol::lipsin_network}, // zhf add code for lipsin_network
     { 93, &Protocol::lipsin_sender_app}, // zhf add code for lipsin_sender
+    { 94, &Protocol::sr_sender_app}, // zhf add code for sr_sender_app
+    { 95, &Protocol::sr_network},  // zhf add code for sr_network
+    { 96, &Protocol::sr_app},      // zhf add code for sr_app
     { 103, &Protocol::pim },
     { 132, &Protocol::sctp },
     { 135, &Protocol::mobileipv6 },

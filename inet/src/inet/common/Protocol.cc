@@ -134,6 +134,9 @@ const Protocol Protocol::dtn("dtn", "dtn"); // zhf add code
 const Protocol Protocol::lipsin_app("lipsin_app", "lipsin_app"); // zhf add code
 const Protocol Protocol::lipsin_sender_app("lipsin_sender_app", "lipsin_sender_app"); // zhf add code
 const Protocol Protocol::lipsin_network("lipsin_network", "lipsin_network"); // zhf add code
+const Protocol Protocol::sr_sender_app("sr_sender_app", "sr_sender_app"); // zhf add code
+const Protocol Protocol::sr_network("sr_network", "sr_network"); // zhf add code
+const Protocol Protocol::sr_app("sr_app", "sr_app"); // zhf add code
 const Protocol Protocol::eigrp("eigrp", "EIGRP");
 const Protocol Protocol::pim("pim", "PIM");
 const Protocol Protocol::ppp("ppp", "PPP", Protocol::LinkLayer);

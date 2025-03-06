@@ -27,8 +27,7 @@ namespace inet {
         WATCH_MAP(this->sourceToDestinationRoutesMap);
     }
 
-    void LipsinRoutingTable::updateGlobalRoutingTable(
-            const std::map<std::string, std::vector<LinkInfo *>> &newGlobalRoutingTable) {
+    void LipsinRoutingTable::updateGlobalRoutingTable(const std::map<std::string, std::vector<LinkInfo *>> &newGlobalRoutingTable) {
         this->sourceToDestinationRoutesMap = newGlobalRoutingTable;
     }
 
@@ -63,6 +62,18 @@ namespace inet {
         for(int nodeId : nodeIds){
             std::vector<LinkInfo*> routes = this->destinationRoutesMap[nodeId];
             final_result.insert(final_result.end(), routes.begin(), routes.end());
+        }
+        return final_result;
+    }
+
+    std::vector<LinkInfo*> LipsinRoutingTable::getSPFMulticastRoutesByDestIds(const std::vector<int> &nodeIds) {
+        std::vector<LinkInfo*> final_result;
+        std::string currentSatelliteName = this->getParentModule()->getFullName();
+        int currentSatelliteId = LipsinTools::getSatelliteId(currentSatelliteName);
+        for(int index = 0; index < nodeIds.size(); index++){
+            std::string fromSourceToOther = std::to_string(currentSatelliteId) + "->" + std::to_string(nodeIds[index]);
+            std::vector<LinkInfo*> otherRoute = this->sourceToDestinationRoutesMap[fromSourceToOther];
+            final_result.insert(final_result.end(), otherRoute.begin(), otherRoute.end());
         }
         return final_result;
     }

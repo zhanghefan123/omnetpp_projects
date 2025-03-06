@@ -272,6 +272,7 @@ namespace inet {
             // second we need to traverse the physical lipsin link table and forward the packet
             // -----------------------------------------------------------------------------------------
             std::vector<LinkInfo*> pltEntries = plt->findOutputLinkIdentifiers(oldRealLidsBf);
+            std::cout << pltEntries.size() << std::endl;
             // std::vector<LinkInfo*> pltEntries = plt->findAllOutputLinkIdentifiers();
             std::set<int> dontForwardInterfaceIds = {};
             traverseAndForwardPackets(pltEntries, -1, lipsinHeaderOld,
@@ -340,6 +341,7 @@ namespace inet {
 
             // ----------------------------optimal encoding-----------------------------------
             int packetIndicateIntermediateNode = lipsinHeaderOld->getIntermediateNode();
+            std::cout << "intermediate node:" << packetIndicateIntermediateNode << std::endl;
             // 判断是否自己是中间节点
             if(packetIndicateIntermediateNode == this->currentSatelliteId){
                 // std::cout << "i am the intermediate node" << std::endl;
@@ -386,7 +388,7 @@ namespace inet {
             if(this->checkIsDestination(lipsinHeaderOld)) {
                 // judge the app number
                 if (this->getParentModule()->getParentModule()->par("hasLipsinReceiver").boolValue()) {
-                    dontForwardPackets = true;
+                    dontForwardPackets = false;  // 有了 receiver 也不代表不需要进行转发了
                 }
             }
             // ---------------------------------------------
@@ -709,6 +711,10 @@ namespace inet {
                 continue;
             }
 
+            if(!entry->getNetworkInterface()->isUp()){
+                continue;
+            }
+
             // after the check before, the packet will definitely be forwarded
             realForwardEntries += 1;
 
@@ -785,6 +791,9 @@ namespace inet {
             // ---------------------------------------------------------------------------------------------
             // std::cout << "lipsin header size: " << (int(lipsinHeaderNew->getChunkLength().get())/8) << std::endl;
             double transmissionDelay = (1026 + (int(lipsinHeaderNew->getChunkLength().get())/8)) * 8.0 / (10.0 * 1000.0);
+            if(this->recorder->singlePacketSize == 0){
+                this->recorder->singlePacketSize = 1024 + 26 + (int(lipsinHeaderNew->getChunkLength().get())/8);
+            }
             lipsinHeaderNew->setTransmissionDelay(lipsinHeaderNew->getTransmissionDelay() + transmissionDelay);
             // ---------------------------------------------------------------------------------------------
 

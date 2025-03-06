@@ -60,6 +60,7 @@ module Router extends ApplicationLayerNodeBase
         bool hasPim = default(false);
         bool hasDhcp = default(false);
         bool hasLipsin = default(false);
+        bool hasSR = default(false);
         hasUdp = default(hasRip || hasDhcp);
         hasTcp = default(hasBgp);
         *.routingTableModule = default("^.ipv4.routingTable");

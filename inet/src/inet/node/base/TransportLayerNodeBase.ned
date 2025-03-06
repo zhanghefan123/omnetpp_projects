@@ -72,5 +72,8 @@ module TransportLayerNodeBase extends NetworkLayerNodeBase
         
         tn.out++ --> lipsinNetworkLayer.transportIn if hasLipsin;
         tn.in++ <-- lipsinNetworkLayer.transportOut if hasLipsin;
+
+        tn.out++ --> srNetworkLayer.transportIn if hasSR;
+        tn.in++ <-- srNetworkLayer.transportOut if hasSR;
 }
 

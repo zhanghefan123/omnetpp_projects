@@ -42,6 +42,7 @@ module StandardHost extends ApplicationLayerNodeBase
         @display("i=device/pc2");
         @figure[submodules];
         bool hasLipsin = default(false);
+        bool hasSR = default(false);
         forwarding = default(false);  // disable routing by default
         ipv4.arp.proxyArpInterfaces = default(""); // proxy arp is disabled on hosts by default
         *.routingTableModule = default("^.ipv4.routingTable");

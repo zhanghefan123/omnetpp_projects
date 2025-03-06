@@ -112,6 +112,9 @@ class INET_API Protocol
     static const Protocol lipsin_app; // zhf add code
     static const Protocol lipsin_sender_app; // zhf add code
     static const Protocol lipsin_network; // zhf add code
+    static const Protocol sr_app;       // zhf add code for receiver
+    static const Protocol sr_sender_app;  // zhf add code for sender
+    static const Protocol sr_network; // zhf add code for network layer
     static const Protocol pim;
     static const Protocol ppp;
     static const Protocol rip;

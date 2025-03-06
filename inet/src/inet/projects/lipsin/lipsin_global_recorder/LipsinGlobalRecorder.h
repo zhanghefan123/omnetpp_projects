@@ -27,6 +27,7 @@ public:
     int forwardCount = 0;
     int totalSendPackets = 0;
     int satelliteNum = 0;
+    double singlePacketSize = 0;
 
     int totalLipsinReceiver = 0;
     int totalIpReceiver = 0;

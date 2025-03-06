@@ -97,7 +97,8 @@ namespace inet {
             // update the receive num
             this->recorder->packetReceivedCount++;
             // update total delay
-            this->recorder->sumDelay += packetTotalDelay + packetEncapsulationDelay;
+            this->recorder->sumDelay += packetTotalDelay;
+            std::cout << packetTotalDelay << std::endl;
             // update transmission delay
             this->recorder->transmissionDelay += packetTransmissionDelay;
             // update propagation delay
@@ -108,6 +109,7 @@ namespace inet {
             this->recorder->averageTotalDelay = (this->recorder->sumDelay / this->recorder->packetReceivedCount);
             // update average queueing delay
             this->recorder->averageQueueingDelay = (this->recorder->queueingDelay / this->recorder->packetReceivedCount);
+            std::cout << "packet length:" << packet->getByteLength() << std::endl;
             // ---------------------------update delay related-----------------------------------------
 
             // update the encapsulationNodeCount
@@ -127,28 +129,28 @@ namespace inet {
      * @brief finish and record some statistics
      */
     void LipsinReceiver::finish(){
-        std::stringstream ss;
-        std::ofstream countFile;
-        std::string outputFileName;
-        ss.setf(std::ios::fixed);
-        ss.precision(3);
-        // --------------------------deley related output--------------------------------------------
-        ss << "total delay: " << this->recorder->sumDelay<< " ms" << std::endl;
-        ss << "total propagation delay: " << this->recorder->propagationDelay << " ms" << std::endl;
-        ss << "total transmission delay: " << this->recorder->transmissionDelay << " ms" << std::endl;
-        ss << "total queueing delay: " << this->recorder->queueingDelay << " ms" << std::endl;
-        ss << "average delay: " << this->recorder->averageTotalDelay << " ms" << std::endl;
-        ss << "average queueing delay: " << this->recorder->averageQueueingDelay << " ms" << std::endl;
-        // --------------------------deley related output--------------------------------------------
-
-        ss << "received packet count: " << this->recorder->packetReceivedCount << std::endl;
-        ss << "received packet size: " << this->recorder->totalReceivedSize << " Bytes" << std::endl;
-        ss << "throughput: " << this->recorder->throughput << " Mbps" << std::endl;
-        ss << "encapsulation node count: " << this->recorder->encapsulationNodeCount << std::endl;
-
-        outputFileName = this->getParentModule()->getFullName() + std::string("_receiver_statistic.txt");
-        countFile.open(outputFileName, std::ios::out | std::ios::trunc);
-        countFile.write(ss.str().c_str(), int(ss.str().length()));
+//        std::stringstream ss;
+//        std::ofstream countFile;
+//        std::string outputFileName;
+//        ss.setf(std::ios::fixed);
+//        ss.precision(3);
+//        // --------------------------deley related output--------------------------------------------
+//        ss << "total delay: " << this->recorder->sumDelay<< " ms" << std::endl;
+//        ss << "total propagation delay: " << this->recorder->propagationDelay << " ms" << std::endl;
+//        ss << "total transmission delay: " << this->recorder->transmissionDelay << " ms" << std::endl;
+//        ss << "total queueing delay: " << this->recorder->queueingDelay << " ms" << std::endl;
+//        ss << "average delay: " << this->recorder->averageTotalDelay << " ms" << std::endl;
+//        ss << "average queueing delay: " << this->recorder->averageQueueingDelay << " ms" << std::endl;
+//        // --------------------------deley related output--------------------------------------------
+//
+//        ss << "received packet count: " << this->recorder->packetReceivedCount << std::endl;
+//        ss << "received packet size: " << this->recorder->totalReceivedSize << " Bytes" << std::endl;
+//        ss << "throughput: " << this->recorder->throughput << " Mbps" << std::endl;
+//        ss << "encapsulation node count: " << this->recorder->encapsulationNodeCount << std::endl;
+//
+//        outputFileName = this->getParentModule()->getFullName() + std::string("_receiver_statistic.txt");
+//        countFile.open(outputFileName, std::ios::out | std::ios::trunc);
+//        countFile.write(ss.str().c_str(), int(ss.str().length()));
     }
 
     ReceiveRecorder* LipsinReceiver::getReceiveRecorder() {
